@@ -25,7 +25,9 @@ addon/remorseim_gunpack/          ← готовый аддон (кидать в
 ├── ИщиКонтент.bat                ← БАТНИК: поиск и чистка контента
 ├── content_manifest.json         ← что именно нужно новым свepам
 ├── tools/
-│   └── find_content.py           логика батника
+│   ├── models.txt                списки нужных файлов (по строке на путь)
+│   ├── materials.txt
+│   └── sounds.txt
 └── lua/
     ├── autorun/
     │   ├── sh_remorseim_gunpack.lua      слой совместимости (клиент+сервер)
@@ -99,27 +101,15 @@ build/
 addon\remorseim_gunpack\ИщиКонтент.bat
 ```
 
-Батник лежит **внутри аддона**, рядом с папками контента — ничего искать
-по репозиторию не нужно. Двойной клик. Что делает:
+Двойной клик — **никакого Python не нужно**, это чистый batch, который
+выполняет `cmd.exe`. Батник лежит внутри аддона, рядом с папками контента.
 
-1. находит Python;
-2. распаковывает zip-архивы в `.work/` и собирает аддон;
-3. спрашивает путь к `garrysmod` (Enter — поиск автоматически по типовым
-   путям Steam), проверяет, каких моделей и звуков не хватает;
-4. выводит id воркшоп-аддонов, которые закрывают контент.
+Что делает: находит Garry's Mod (реестр Steam, потом типовые папки), строит
+один индекс файлов `garrysmod/`, `garrysmod/addons/` и воркшопа
+`steamapps/workshop/content/4000/`, затем по спискам `tools\*.txt` копирует
+нужное в `models/`, `materials/`, `sound/`.
 
-Можно и по отдельности:
-
-```bat
-python addon\remorseim_gunpack\tools\find_content.py prepare    :: распаковать архивы
-python addon\remorseim_gunpack\tools\find_content.py build      :: собрать аддон
-python addon\remorseim_gunpack\tools\find_content.py content    :: разложить контент
-python addon\remorseim_gunpack\tools\find_content.py prune      :: удалить лишнее
-python addon\remorseim_gunpack\tools\find_content.py scan       :: проверить контент
-python addon\remorseim_gunpack\tools\find_content.py workshop   :: показать воркшоп-id
-```
-
-Если Garry's Mod стоит нестандартно:
+Если Garry's Mod стоит нестандартно — он спросит путь сам, либо:
 
 ```bat
 set GMOD_PATH=D:\Games\GarrysMod\garrysmod
@@ -134,7 +124,8 @@ set GMOD_PATH=D:\Games\GarrysMod\garrysmod
 Поэтому:
 
 * **в репозитории только скрипты** (аддон ~1.5 МБ);
-* точный список нужных файлов лежит в `content_manifest.json`;
+* точный список нужных файлов лежит в `content_manifest.json` и в плоских
+  списках `tools\models.txt`, `materials.txt`, `sounds.txt`;
 * сервер сам раздаёт эти файлы через `resource.AddSingleFile` — список
   компилируется в `lua/autorun/server/sv_gunpack_content.lua`;
 * на практике контент закрывается тремя воркшоп-аддонами:
@@ -349,28 +340,34 @@ addon/remorseim_gunpack/
 `addon\remorseim_gunpack\ИщиКонтент.bat` — меню:
 
 ```
-1 - Все три папки: models + materials + sound
+1 - Найти и разложить: models + materials + sound
 2 - Только models
 3 - Только materials
 4 - Только sound
-5 - Пересобрать список контента (content_manifest.json)
-6 - Проверить, чего не хватает
-7 - Воркшоп-аддоны с контентом
-8 - УДАЛИТЬ лишнее из models/materials/sound
-9 - Показать, что будет удалено (без удаления)
+5 - Проверить, чего не хватает
+6 - УДАЛИТЬ лишнее из models/materials/sound
+7 - Показать лишнее (без удаления)
+0 - Выход
 ```
 
-### Чистка лишнего (пункты 8 и 9)
+Списки того, что нужно, лежат рядом — `tools\models.txt`,
+`tools\materials.txt`, `tools\sounds.txt`, по строке на путь. Их
+пересоздаёт сборщик аддона, руками править не надо.
 
-«Нужное» — это всё, что есть в `content_manifest.json`, то есть модели,
-текстуры и звуки, на которые ссылаются новые оружия. Всё остальное в этих
-трёх папках — лишнее, и пункт 8 его удаляет:
+### Чистка лишнего (пункты 6 и 7)
+
+«Нужное» — это всё, что есть в `tools\*.txt`, то есть модели, текстуры и
+звуки, на которые ссылаются новые оружия. Всё остальное в этих трёх папках —
+лишнее, и пункт 6 его удаляет:
 
 * мусор от прошлых раскладок, чужие аддоны, случайно скопированные папки;
 * `.vvd/.vtx/.phy` от моделей, которые больше не используются;
 * пустые папки после удаления тоже убираются.
 
-Перед удалением спрашивает подтверждение (`yes`), а пункт 9 показывает
+Сравнение идёт по имени файла: если такое имя нужно хотя бы одной модели —
+файл остаётся. Лучше оставить лишнее, чем снести нужное.
+
+Перед удалением спрашивает подтверждение (`yes`), а пункт 7 показывает
 список без удаления. Серверный аддон `lua/` чистка не трогает — только
 `models/`, `materials/`, `sound/`.
 
@@ -387,9 +384,9 @@ addon/remorseim_gunpack/
 соответствующие папки аддона. Сервер сам раздаст их клиентам
 (`resource.AddSingleFile`), отдельный FastDL не обязателен.
 
-`content_manifest.json` и `tools/find_content.py` лежат внутри аддона и
-Garry's Mod их не загружает — он читает только `lua/`. Если собираете `.gma`
-для воркшопа, папку `tools/`, батник и манифест можно не включать.
+`content_manifest.json` и папка `tools/` лежат внутри аддона и Garry's Mod
+их не загружает — он читает только `lua/`. Если собираете `.gma` для
+воркшопа, батник, `tools/` и манифест можно не включать.
 
 ---
 
@@ -399,13 +396,13 @@ Garry's Mod их не загружает — он читает только `lua
 addon\remorseim_gunpack\ИщиКонтент.bat
 ```
 
-или вручную (из корня репозитория):
+Сборка аддона из исходников (это отдельный шаг, контент к ней не относится):
 
 ```bat
-python addon\remorseim_gunpack\tools\find_content.py prepare
-python addon\remorseim_gunpack\tools\find_content.py build
-python addon\remorseim_gunpack\tools\find_content.py content
+python build\build_addon.py
 ```
+
+Сам батник для поиска контента Python не требует — он на чистом batch.
 
 `build_addon.py` читает `build/manifest.json` (огнестрел и снаряжение) и
 копирует lua-файлы из `.work/remorseism-main/` в `addon/remorseim_gunpack/`.

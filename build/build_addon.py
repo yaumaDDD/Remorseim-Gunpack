@@ -304,7 +304,7 @@ def write_content_manifest(man, sounds, models, materials, particles):
         "_comment": [
             "Контент, который нужен НОВЫМ свep'ам Remorseim и которого нет в обычном Z-City.",
             "models/ materials/ sound/ — пути внутри garrysmod/ и внутри аддона.",
-            "Ищет и раскладывает: ИщиКонтент.bat в папке аддона (tools/find_content.py content).",
+            "Ищет и раскладывает: ИщиКонтент.bat в папке аддона (чистый batch).",
             "Файлы уже лежат в addon/remorseim_gunpack/{models,materials,sound}/ —",
             "если они там есть, качать ничего не нужно.",
         ],
@@ -312,7 +312,8 @@ def write_content_manifest(man, sounds, models, materials, particles):
             "автоматически": "ИщиКонтент.bat в папке аддона -> пункт 1",
             "вручную": "найти по путям в своей папке garrysmod/workshop и скопировать",
             "куда": "models/, materials/, sound/ рядом с батником — структура сохраняется",
-            "лишнее": "ИщиКонтент.bat -> пункт 8 удаляет всё, чего нет в этом списке",
+            "списки": "tools\\models.txt, materials.txt, sounds.txt - те же пути построчно",
+            "лишнее": "ИщиКонтент.bat -> пункт 6 удаляет всё, чего нет в списках",
         },
         "counts": {
             "models": len(models),
@@ -349,6 +350,18 @@ def write_content_manifest(man, sounds, models, materials, particles):
     body.append("}")
     with open(lua_path, "w", encoding="utf-8") as f:
         f.write("\n".join(body) + "\n")
+
+    # Плоские списки для батника: по строке на путь, без JSON-обвязки.
+    # Батник читает именно их, поэтому ему не нужен ни Python, ни jq.
+    lists_dir = os.path.join(ADDON, "tools")
+    os.makedirs(lists_dir, exist_ok=True)
+    for name, key in (("models.txt", "models"),
+                      ("materials.txt", "materials"),
+                      ("sounds.txt", "sounds")):
+        with open(os.path.join(lists_dir, name), "w",
+                  encoding="utf-8", newline="\r\n") as f:
+            for item in out[key]:
+                f.write(item.replace("/", "\\") + "\n")
 
     log("содержимое: %d моделей, %d материалов, %d звуков, %d частиц"
         % (len(models), len(materials), len(sounds), len(particles)))
