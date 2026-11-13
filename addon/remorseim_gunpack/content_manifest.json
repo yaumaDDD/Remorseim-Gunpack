@@ -2,14 +2,15 @@
   "_comment": [
     "Контент, который нужен НОВЫМ свep'ам Remorseim и которого нет в обычном Z-City.",
     "models/ materials/ sound/ — пути внутри garrysmod/ и внутри аддона.",
-    "Ищет и раскладывает: tools/find_content.py content (батник ИщиКонтент.bat).",
+    "Ищет и раскладывает: ИщиКонтент.bat в папке аддона (tools/find_content.py content).",
     "Файлы уже лежат в addon/remorseim_gunpack/{models,materials,sound}/ —",
     "если они там есть, качать ничего не нужно."
   ],
   "howto": {
-    "автоматически": "tools\\ИщиКонтент.bat -> пункт 1",
+    "автоматически": "ИщиКонтент.bat в папке аддона -> пункт 1",
     "вручную": "найти по путям в своей папке garrysmod/workshop и скопировать",
-    "куда": "addon/remorseim_gunpack/models, /materials, /sound — структура сохраняется"
+    "куда": "models/, materials/, sound/ рядом с батником — структура сохраняется",
+    "лишнее": "ИщиКонтент.bat -> пункт 8 удаляет всё, чего нет в этом списке"
   },
   "counts": {
     "models": 397,

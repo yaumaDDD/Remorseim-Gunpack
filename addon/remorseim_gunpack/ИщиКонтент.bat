@@ -1,22 +1,26 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableDelayedExpansion
-title Remorseim Gunpack - поиск контента
+title Remorseim Gunpack - поиск и чистка контента
 
-cd /d "%~dp0.."
+rem Батник лежит прямо в папке аддона, поэтому корень — его же папка.
+cd /d "%~dp0"
 
 echo ==================================================================
-echo   Remorseim Gunpack :: поиск контента для НОВЫХ свепов
+echo   Remorseim Gunpack :: контент для НОВЫХ свепов
 echo ==================================================================
+echo.
+echo   Папка аддона: %CD%
 echo.
 echo   Контент ищется ТОЛЬКО для новых оружий и ближнего боя Remorseim
-echo   и раскладывается в три папки аддона:
+echo   и раскладывается в три папки рядом с этим батником:
 echo.
-echo       addon\remorseim_gunpack\models\      модели .mdl/.vvd/.vtx/.phy
-echo       addon\remorseim_gunpack\materials\   материалы .vmt/.vtf + иконки
-echo       addon\remorseim_gunpack\sound\       звуки .wav/.ogg
+echo       models\      модели .mdl/.vvd/.vtx/.phy
+echo       materials\   материалы .vmt/.vtf + иконки vgui
+echo       sound\       звуки .wav/.ogg
 echo.
-echo   Старое оружие Z-City не трогается - его контент уже на месте.
+echo   Лишнее (то, что не нужно ни одной модели/текстуре новых свепов)
+echo   можно удалить пунктом 8 - оно считается по content_manifest.json.
 echo.
 echo ==================================================================
 echo.
@@ -29,6 +33,13 @@ if "%PY%"=="" (
     echo [ОШИБКА] Python не найден.
     echo Установите Python 3 с https://python.org и запустите снова.
     echo При установке поставьте галочку "Add Python to PATH".
+    pause
+    exit /b 2
+)
+
+set SCRIPT=%~dp0tools\find_content.py
+if not exist "%SCRIPT%" (
+    echo [ОШИБКА] Не найден tools\find_content.py рядом с батником.
     pause
     exit /b 2
 )
@@ -54,9 +65,11 @@ echo   1 - Все три папки: models + materials + sound
 echo   2 - Только models
 echo   3 - Только materials
 echo   4 - Только sound
-echo   5 - Пересобрать аддон (структура папок + content_manifest.json)
+echo   5 - Пересобрать список контента (content_manifest.json)
 echo   6 - Проверить, чего не хватает
 echo   7 - Воркшоп-аддоны с контентом
+echo   8 - УДАЛИТЬ лишнее из models/materials/sound
+echo   9 - Показать, что будет удалено (без удаления)
 echo   0 - Выход
 echo ------------------------------------------------------------------
 set CHOICE=
@@ -71,77 +84,99 @@ if "%CHOICE%"=="4" goto only_sound
 if "%CHOICE%"=="5" goto rebuild
 if "%CHOICE%"=="6" goto check
 if "%CHOICE%"=="7" goto workshop
+if "%CHOICE%"=="8" goto prune
+if "%CHOICE%"=="9" goto prune_dry
 echo Не понял выбор "%CHOICE%".
 echo.
 goto menu
 
 :all_content
 echo.
-echo [1/2] Подготовка: сборка аддона и списка контента...
-%PY% tools\find_content.py build
+echo [1/2] Подготовка: список контента...
+%PY% "%SCRIPT%" build
 if errorlevel 1 goto fail
 echo.
 echo [2/2] Поиск и раскладка: models + materials + sound...
-%PY% tools\find_content.py content
+%PY% "%SCRIPT%" content
 set RESULT=%errorlevel%
 goto done
 
 :only_models
 echo.
-echo [1/2] Подготовка: сборка аддона и списка контента...
-%PY% tools\find_content.py build
+%PY% "%SCRIPT%" build
 if errorlevel 1 goto fail
 echo.
-echo [2/2] Поиск и раскладка: только models...
-%PY% tools\find_content.py content --only models
+echo Поиск и раскладка: только models...
+%PY% "%SCRIPT%" content --only models
 set RESULT=%errorlevel%
 goto done
 
 :only_materials
 echo.
-echo [1/2] Подготовка: сборка аддона и списка контента...
-%PY% tools\find_content.py build
+%PY% "%SCRIPT%" build
 if errorlevel 1 goto fail
 echo.
-echo [2/2] Поиск и раскладка: только materials...
-%PY% tools\find_content.py content --only materials
+echo Поиск и раскладка: только materials...
+%PY% "%SCRIPT%" content --only materials
 set RESULT=%errorlevel%
 goto done
 
 :only_sound
 echo.
-echo [1/2] Подготовка: сборка аддона и списка контента...
-%PY% tools\find_content.py build
+%PY% "%SCRIPT%" build
 if errorlevel 1 goto fail
 echo.
-echo [2/2] Поиск и раскладка: только sound...
-%PY% tools\find_content.py content --only sounds
+echo Поиск и раскладка: только sound...
+%PY% "%SCRIPT%" content --only sounds
 set RESULT=%errorlevel%
 goto done
 
 :rebuild
 echo.
-%PY% tools\find_content.py build
+%PY% "%SCRIPT%" build
 set RESULT=%errorlevel%
 goto done
 
 :check
 echo.
-%PY% tools\find_content.py scan
+%PY% "%SCRIPT%" scan
 set RESULT=%errorlevel%
 goto done
 
 :workshop
 echo.
-%PY% tools\find_content.py workshop
+%PY% "%SCRIPT%" workshop
 set RESULT=0
+goto done
+
+:prune_dry
+echo.
+echo Показываю, что лишнее (ничего не удаляю)...
+%PY% "%SCRIPT%" prune --dry-run
+set RESULT=0
+goto done
+
+:prune
+echo.
+echo ВНИМАНИЕ: сейчас будут УДАЛЕНЫ файлы из models/materials/sound,
+echo которых нет в content_manifest.json.
+echo.
+set CONFIRM=
+set /p CONFIRM="Точно удалить? (yes/no) [no]: "
+if /i not "%CONFIRM%"=="yes" (
+    echo Отменено.
+    goto menu
+)
+echo.
+%PY% "%SCRIPT%" prune
+set RESULT=%errorlevel%
 goto done
 
 :done
 echo.
 if "%RESULT%"=="0" (
     echo ==================================================================
-    echo   ГОТОВО: всё, что нужно, найдено и разложено по папкам.
+    echo   ГОТОВО.
     echo ==================================================================
 ) else (
     echo ==================================================================
@@ -150,14 +185,14 @@ if "%RESULT%"=="0" (
     echo ==================================================================
 )
 echo.
-echo Аддон:  addon\remorseim_gunpack
-echo Список: content_manifest.json
+echo Папка аддона: %CD%
+echo Список:       content_manifest.json
 echo.
 pause
 exit /b 0
 
 :fail
 echo.
-echo [ОШИБКА] Сборка не удалась. Смотрите сообщения выше.
+echo [ОШИБКА] Не удалось. Смотрите сообщения выше.
 pause
 exit /b 1

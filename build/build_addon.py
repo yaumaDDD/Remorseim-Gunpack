@@ -276,6 +276,8 @@ def write_placeholder_dirs(sounds, models, materials):
             with open(keep, "w", encoding="utf-8", newline="\r\n") as f:
                 f.write(texts[kind])
                 f.write("\nВсего по списку: %d файл(ов).\n" % len(items))
+                f.write("Лишнее удаляет ИщиКонтент.bat - пункт 8 (или 9, чтобы сначала посмотреть).\n")
+
 
 def normalize_sound_path(s):
     s = s.replace("\\", "/")
@@ -302,14 +304,15 @@ def write_content_manifest(man, sounds, models, materials, particles):
         "_comment": [
             "Контент, который нужен НОВЫМ свep'ам Remorseim и которого нет в обычном Z-City.",
             "models/ materials/ sound/ — пути внутри garrysmod/ и внутри аддона.",
-            "Ищет и раскладывает: tools/find_content.py content (батник ИщиКонтент.bat).",
+            "Ищет и раскладывает: ИщиКонтент.bat в папке аддона (tools/find_content.py content).",
             "Файлы уже лежат в addon/remorseim_gunpack/{models,materials,sound}/ —",
             "если они там есть, качать ничего не нужно.",
         ],
         "howto": {
-            "автоматически": "tools\\ИщиКонтент.bat -> пункт 1",
+            "автоматически": "ИщиКонтент.bat в папке аддона -> пункт 1",
             "вручную": "найти по путям в своей папке garrysmod/workshop и скопировать",
-            "куда": "addon/remorseim_gunpack/models, /materials, /sound — структура сохраняется",
+            "куда": "models/, materials/, sound/ рядом с батником — структура сохраняется",
+            "лишнее": "ИщиКонтент.bat -> пункт 8 удаляет всё, чего нет в этом списке",
         },
         "counts": {
             "models": len(models),
@@ -322,7 +325,7 @@ def write_content_manifest(man, sounds, models, materials, particles):
         "sounds": sounds,
         "particles": particles,
     }
-    path = os.path.join(ROOT, "content_manifest.json")
+    path = os.path.join(ADDON, "content_manifest.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
 

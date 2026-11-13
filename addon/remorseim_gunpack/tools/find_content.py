@@ -14,6 +14,8 @@ Remorseim Gunpack :: find_content.py
     build      — собрать аддон (копирование lua + content_manifest.json)
     content    — найти контент новых свep'ов и разложить в models/ materials/ sound/
                  (можно ограничить: content --only models|materials|sounds)
+    prune      — удалить из models/ materials/ sound/ всё, что не нужно свep'ам
+                 (--dry-run — только показать, что будет удалено)
     scan       — проверить, каких моделей/звуков не хватает на диске
     workshop   — вывести id воркшоп-аддонов, которые нужно подключить
     all        — prepare + build + content + scan
@@ -27,10 +29,11 @@ import re
 import sys
 import zipfile
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WORK = os.path.join(ROOT, ".work")
-ADDON = os.path.join(ROOT, "addon", "remorseim_gunpack")
-CONTENT = os.path.join(ROOT, "content_manifest.json")
+# Скрипт лежит ВНУТРИ аддона: <repo>/addon/remorseim_gunpack/tools/find_content.py
+ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(ADDON))
+WORK = os.path.join(REPO, ".work")
+CONTENT = os.path.join(ADDON, "content_manifest.json")
 
 # Папки аддона, куда складывается контент: ровно те, что видит Garry's Mod
 CONTENT_DIRS = ("models", "materials", "sound")
@@ -65,7 +68,7 @@ def hr(ch="=", n=66):
 # --------------------------------------------------------------------------
 
 def prepare():
-    zips = [f for f in os.listdir(ROOT) if f.lower().endswith(".zip")]
+    zips = [f for f in os.listdir(REPO) if f.lower().endswith(".zip")]
     if not zips:
         if os.path.isdir(WORK):
             log("  zip-архивов нет, но .work/ уже распакован — идём дальше.")
@@ -77,7 +80,7 @@ def prepare():
     os.makedirs(WORK, exist_ok=True)
     for z in zips:
         log("  распаковка: " + z)
-        with zipfile.ZipFile(os.path.join(ROOT, z)) as zf:
+        with zipfile.ZipFile(os.path.join(REPO, z)) as zf:
             zf.extractall(WORK)
     return True
 
@@ -87,7 +90,7 @@ def prepare():
 # --------------------------------------------------------------------------
 
 def build():
-    sys.path.insert(0, os.path.join(ROOT, "build"))
+    sys.path.insert(0, os.path.join(REPO, "build"))
     import build_addon  # noqa: E402
 
     sys.argv = ["build_addon.py"]
@@ -266,6 +269,88 @@ def content(only=None):
 
 
 # --------------------------------------------------------------------------
+# prune — удалить из папок контента всё, что не нужно новым свep'ам
+# --------------------------------------------------------------------------
+
+def wanted_set(data):
+    """Множество путей, которые реально нужны (в нижнем регистре)."""
+    wanted = set()
+    for kind in ("models", "materials", "sounds"):
+        for rel in data.get(kind, []):
+            wanted.add(rel.replace("\\", "/").lower())
+    return wanted
+
+
+def is_engine_whitelisted(rel):
+    """Служебное, что не относится к оружию, но и удалять не надо."""
+    low = rel.lower()
+    return os.path.basename(low) in ("readme.txt", ".gitkeep")
+
+
+def prune(dry_run=False):
+    """Проходит по models/, materials/, sound/ и удаляет лишнее.
+
+    «Лишнее» = файл, которого нет в content_manifest.json, то есть он не
+    нужен ни одной модели, текстуре или звуку новых свep'ов.
+    """
+    data = load_content()
+    if not data:
+        return 2, 0, 0
+
+    wanted = wanted_set(data)
+    removed, kept, size_freed = 0, 0, 0
+
+    for kind in CONTENT_DIRS:
+        root = os.path.join(ADDON, kind)
+        if not os.path.isdir(root):
+            continue
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d != ".git"]
+            for fn in filenames:
+                full = os.path.join(dirpath, fn)
+                rel = os.path.relpath(full, ADDON).replace(os.sep, "/")
+
+                if rel.lower() not in wanted and not is_engine_whitelisted(rel):
+                    try:
+                        sz = os.path.getsize(full)
+                    except OSError:
+                        sz = 0
+                    if dry_run:
+                        log("  [показать] " + rel)
+                    else:
+                        try:
+                            os.remove(full)
+                        except OSError:
+                            continue
+                        log("  удалён: " + rel)
+                    removed += 1
+                    size_freed += sz
+                else:
+                    kept += 1
+
+        # пустые папки после чистки
+        if not dry_run:
+            for dirpath, dirnames, filenames in os.walk(root, topdown=False):
+                if dirpath == root:
+                    continue
+                if not os.listdir(dirpath):
+                    try:
+                        os.rmdir(dirpath)
+                    except OSError:
+                        pass
+
+    hr()
+    if dry_run:
+        log("Лишнего: %d файл(ов), нужных: %d" % (removed, kept))
+        log("Это только показ. Для удаления запустите без --dry-run.")
+    else:
+        log("Удалено лишнего: %d файл(ов) (%.1f МБ)" % (removed, size_freed / 1048576.0))
+        log("Оставлено нужного: %d" % kept)
+    hr()
+    return 0, removed, kept
+
+
+# --------------------------------------------------------------------------
 # scan
 # --------------------------------------------------------------------------
 
@@ -401,6 +486,9 @@ def main(argv):
         return 0 if prepare() else 2
     if mode == "build":
         return 0 if build() else 2
+    if mode == "prune":
+        dry = "--dry-run" in argv or "-n" in argv
+        return prune(dry)[0]
     if mode == "content":
         only = None
         if "--only" in argv:

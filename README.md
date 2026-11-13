@@ -22,6 +22,10 @@ melee-swep'ы из архива Remorseim (`remorseim main.zip` → `remorseism-
 ```
 addon/remorseim_gunpack/          ← готовый аддон (кидать в garrysmod/addons/)
 ├── addon.json
+├── ИщиКонтент.bat                ← БАТНИК: поиск и чистка контента
+├── content_manifest.json         ← что именно нужно новым свepам
+├── tools/
+│   └── find_content.py           логика батника
 └── lua/
     ├── autorun/
     │   ├── sh_remorseim_gunpack.lua      слой совместимости (клиент+сервер)
@@ -37,17 +41,11 @@ addon/remorseim_gunpack/          ← готовый аддон (кидать в
     ├── materials/     ← сюда батник кладёт материалы (.vmt/.vtf/.png)
     └── sound/         ← сюда батник кладёт звуки (.wav/.ogg)
 
-tools/
-├── ИщиКонтент.bat                        ← БАТНИК: сборка + поиск контента
-└── find_content.py                       его логика
-
 build/
 ├── manifest.json                         список переносимого огнестрела/снаряжения
 ├── melee_manifest.json                   список ближнего боя (отдельная ветка)
 ├── gen_melee.py                          генератор weapon_rem_melee_*
 └── build_addon.py                        сборщик аддона
-
-content_manifest.json                     что докачать (звуки/модели)
 ```
 
 ### Разница между архивами
@@ -98,10 +96,11 @@ content_manifest.json                     что докачать (звуки/м
 ## Батник поиска контента
 
 ```
-tools\ИщиКонтент.bat
+addon\remorseim_gunpack\ИщиКонтент.bat
 ```
 
-Двойной клик. Что делает:
+Батник лежит **внутри аддона**, рядом с папками контента — ничего искать
+по репозиторию не нужно. Двойной клик. Что делает:
 
 1. находит Python;
 2. распаковывает zip-архивы в `.work/` и собирает аддон;
@@ -112,10 +111,12 @@ tools\ИщиКонтент.bat
 Можно и по отдельности:
 
 ```bat
-python tools\find_content.py prepare    :: распаковать архивы
-python tools\find_content.py build      :: собрать аддон
-python tools\find_content.py scan       :: проверить контент
-python tools\find_content.py workshop   :: показать воркшоп-id
+python addon\remorseim_gunpack\tools\find_content.py prepare    :: распаковать архивы
+python addon\remorseim_gunpack\tools\find_content.py build      :: собрать аддон
+python addon\remorseim_gunpack\tools\find_content.py content    :: разложить контент
+python addon\remorseim_gunpack\tools\find_content.py prune      :: удалить лишнее
+python addon\remorseim_gunpack\tools\find_content.py scan       :: проверить контент
+python addon\remorseim_gunpack\tools\find_content.py workshop   :: показать воркшоп-id
 ```
 
 Если Garry's Mod стоит нестандартно:
@@ -345,17 +346,33 @@ addon/remorseim_gunpack/
 
 ### Батник
 
-`tools\ИщиКонтент.bat` — меню:
+`addon\remorseim_gunpack\ИщиКонтент.bat` — меню:
 
 ```
 1 - Все три папки: models + materials + sound
 2 - Только models
 3 - Только materials
 4 - Только sound
-5 - Пересобрать аддон (структура папок + content_manifest.json)
+5 - Пересобрать список контента (content_manifest.json)
 6 - Проверить, чего не хватает
 7 - Воркшоп-аддоны с контентом
+8 - УДАЛИТЬ лишнее из models/materials/sound
+9 - Показать, что будет удалено (без удаления)
 ```
+
+### Чистка лишнего (пункты 8 и 9)
+
+«Нужное» — это всё, что есть в `content_manifest.json`, то есть модели,
+текстуры и звуки, на которые ссылаются новые оружия. Всё остальное в этих
+трёх папках — лишнее, и пункт 8 его удаляет:
+
+* мусор от прошлых раскладок, чужие аддоны, случайно скопированные папки;
+* `.vvd/.vtx/.phy` от моделей, которые больше не используются;
+* пустые папки после удаления тоже убираются.
+
+Перед удалением спрашивает подтверждение (`yes`), а пункт 9 показывает
+список без удаления. Серверный аддон `lua/` чистка не трогает — только
+`models/`, `materials/`, `sound/`.
 
 Он спрашивает путь к `garrysmod`, обходит её и папки воркшопа
 (`addons/`, `workshop/content/4000/`), находит файлы по путям из
@@ -370,20 +387,24 @@ addon/remorseim_gunpack/
 соответствующие папки аддона. Сервер сам раздаст их клиентам
 (`resource.AddSingleFile`), отдельный FastDL не обязателен.
 
+`content_manifest.json` и `tools/find_content.py` лежат внутри аддона и
+Garry's Mod их не загружает — он читает только `lua/`. Если собираете `.gma`
+для воркшопа, папку `tools/`, батник и манифест можно не включать.
+
 ---
 
 ## Сборка с нуля
 
 ```bat
-tools\ИщиКонтент.bat
+addon\remorseim_gunpack\ИщиКонтент.bat
 ```
 
-или вручную:
+или вручную (из корня репозитория):
 
 ```bat
-python tools\find_content.py prepare
-python tools\find_content.py build
-python tools\find_content.py content
+python addon\remorseim_gunpack\tools\find_content.py prepare
+python addon\remorseim_gunpack\tools\find_content.py build
+python addon\remorseim_gunpack\tools\find_content.py content
 ```
 
 `build_addon.py` читает `build/manifest.json` (огнестрел и снаряжение) и
