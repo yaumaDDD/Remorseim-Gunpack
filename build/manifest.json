@@ -3,7 +3,8 @@
     "Список оружия Remorseim, которое НЕ входит в обычный Z-City (main branch) и поэтому переносится аддоном.",
     "Скрипт build/build_addon.py копирует lua-файлы из распакованного архива Remorseim в addon/remorseim_gunpack/lua/weapons/.",
     "Поле 'extra_entities' — сущности, без которых оружие не работает (их тоже надо перенести).",
-    "Поле 'sounds' — звуки, которые отсутствуют в обычном Z-City (builde скрипт сверит их с Z-City и запишет в content_manifest.json)."
+    "Поле 'sounds' — звуки, которые отсутствуют в обычном Z-City (builde скрипт сверит их с Z-City и запишет в content_manifest.json).",
+    "Ближний бой сюда НЕ входит: он переносится отдельно, со своей базой (см. build/melee_manifest.json)."
   ],
   "source_root": "remorseism-main",
   "weapons": [
@@ -38,19 +39,9 @@
       "note": "Carpet Bomber"
     },
     {
-      "class": "weapon_chainsaw",
-      "cat": "melee",
-      "note": "Chainsaw (топливо, стамина)"
-    },
-    {
       "class": "weapon_coltlmg",
       "cat": "mg",
       "note": "Colt LMG"
-    },
-    {
-      "class": "weapon_combatknife",
-      "cat": "melee",
-      "note": "M7 Bayonet"
     },
     {
       "class": "weapon_deagle_annihilator",
@@ -146,11 +137,6 @@
       "class": "weapon_m870mcs",
       "cat": "shotgun",
       "note": "Remington M870 MCS"
-    },
-    {
-      "class": "weapon_metalbat",
-      "cat": "melee",
-      "note": "Aluminium Bat"
     },
     {
       "class": "weapon_midazolam",

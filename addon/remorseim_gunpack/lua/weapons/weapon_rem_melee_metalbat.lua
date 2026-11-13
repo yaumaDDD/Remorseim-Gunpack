@@ -1,8 +1,9 @@
-﻿if SERVER then AddCSLuaFile() end
-SWEP.Base = "weapon_melee"
-SWEP.PrintName = "Aluminium Bat"
+if SERVER then AddCSLuaFile() end
+SWEP.Base = "weapon_rem_melee_base"
+-- Автогенерация: build/gen_melee.py — из weapon_metalbat.lua архива Remorseim
+SWEP.PrintName = "Aluminium Bat (Rem)"
 SWEP.Instructions = "An Aluminium bat. The design features of the bat allow it to deliver powerful and heavy blows.\n\nLMB to attack.\nRMB to block."
-SWEP.Category = "Weapons - Melee"
+SWEP.Category = "Weapons - Remorseim Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
 SWEP.HoldType = "slam"

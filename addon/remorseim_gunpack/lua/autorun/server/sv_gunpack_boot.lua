@@ -65,10 +65,6 @@ GP.Weapons = {
 	weapon_nlglock26 = true,
 	weapon_revolverm500 = true,
 
-	-- ближний бой
-	weapon_combatknife = true,
-	weapon_metalbat = true,
-	weapon_chainsaw = true,
 
 	-- снаряжение
 	weapon_ammocrate = true,
@@ -83,6 +79,48 @@ GP.Weapons = {
 	weapon_carpetbomber = true,
 	weapon_airstrike = true,
 	weapon_uav = true,
+}
+
+----------------------------------------------------------------
+-- 1.1 Ближний бой — отдельная ветка
+----------------------------------------------------------------
+-- Все свep'ы лежат на своей базе weapon_rem_melee_base и живут в отдельной
+-- категории "Weapons - Remorseim Melee". Классы Z-City не переопределяются,
+-- поэтому оба набора сосуществуют.
+GP.MeleeWeapons = {
+	weapon_rem_melee_ballistic_shield = true,
+	weapon_rem_melee_bat = true,
+	weapon_rem_melee_brick = true,
+	weapon_rem_melee_buck200knife = true,
+	weapon_rem_melee_chainsaw = true,
+	weapon_rem_melee_chair_leg = true,
+	weapon_rem_melee_combatknife = true,
+	weapon_rem_melee_hammer = true,
+	weapon_rem_melee_hatchet = true,
+	weapon_rem_melee_hg_axe = true,
+	weapon_rem_melee_hg_bottle = true,
+	weapon_rem_melee_hg_bottlebroken = true,
+	weapon_rem_melee_hg_crowbar = true,
+	weapon_rem_melee_hg_crowbar_gordon = true,
+	weapon_rem_melee_hg_extinguisher = true,
+	weapon_rem_melee_hg_glassshard = true,
+	weapon_rem_melee_hg_glassshard_taped = true,
+	weapon_rem_melee_hg_machete = true,
+	weapon_rem_melee_hg_mug = true,
+	weapon_rem_melee_hg_shovel = true,
+	weapon_rem_melee_hg_sledgehammer = true,
+	weapon_rem_melee_hg_spear = true,
+	weapon_rem_melee_hg_spear_knife = true,
+	weapon_rem_melee_hg_spear_pro = true,
+	weapon_rem_melee_hg_stunstick = true,
+	weapon_rem_melee_hg_tonfa = true,
+	weapon_rem_melee_leadpipe = true,
+	weapon_rem_melee_metalbat = true,
+	weapon_rem_melee_pan = true,
+	weapon_rem_melee_pocketknife = true,
+	weapon_rem_melee_ram = true,
+	weapon_rem_melee_sogknife = true,
+	weapon_rem_melee_table_leg = true,
 }
 
 ----------------------------------------------------------------

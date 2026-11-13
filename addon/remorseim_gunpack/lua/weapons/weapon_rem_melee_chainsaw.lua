@@ -1,8 +1,9 @@
-﻿if SERVER then AddCSLuaFile() end
-SWEP.Base = "weapon_melee"
-SWEP.PrintName = "Chainsaw"
+if SERVER then AddCSLuaFile() end
+SWEP.Base = "weapon_rem_melee_base"
+-- Автогенерация: build/gen_melee.py — из weapon_chainsaw.lua архива Remorseim
+SWEP.PrintName = "Chainsaw (Rem)"
 SWEP.Instructions = "chainsawbrrttt aysss, we wont need a description since remorse doesnt have it"
-SWEP.Category = "Weapons - Melee"
+SWEP.Category = "Weapons - Remorseim Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
 
@@ -699,7 +700,7 @@ function SWEP:PrimaryAttack()
     if (self.ChainsawToggleBusyUntil or 0) > CurTime() then return end
 
     if not self.ChainsawOn then
-        local base = weapons.GetStored("weapon_melee")
+        local base = weapons.GetStored("weapon_rem_melee_base")
         if base and base.PrimaryAttack then base.PrimaryAttack(self) end
         return
     end
@@ -743,7 +744,7 @@ function SWEP:SecondaryAttack()
     if (self.ChainsawToggleBusyUntil or 0) > CurTime() then return end
     if self.ChainsawOn or self.ChainsawStartAttempting then return end
 
-    local base = weapons.GetStored("weapon_melee")
+    local base = weapons.GetStored("weapon_rem_melee_base")
     if base and base.SecondaryAttack then base.SecondaryAttack(self) end
 end
 
@@ -808,7 +809,7 @@ end
 function SWEP:OnRemove()
     self:StopChainsawSounds()
 
-    local base = weapons.GetStored("weapon_melee")
+    local base = weapons.GetStored("weapon_rem_melee_base")
     if base and base.OnRemove then base.OnRemove(self) end
 end
 

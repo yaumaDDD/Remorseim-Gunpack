@@ -6,8 +6,17 @@
 	-------
 	Отдельный аддон, который ДОБАВЛЯЕТ в обычный Z-City оружие и melee-swep'ы
 	из архива Remorseim, которых в нём нет. Ничего не заменяет: файлы Z-City
-	не перезаписываются, базовые классы (weapon_melee, homigrad_base,
+	не перезаписываются, базовые классы (homigrad_base,
 	weapon_m4super, weapon_revolver2 и т.д.) используются как есть.
+
+	БЛИЖНИЙ БОЙ — ОТДЕЛЬНО
+	----------------------
+	Весь melee из Remorseim переносится своей веткой:
+		weapon_rem_melee_base  — форкнутая melee-база Remorseim
+		weapon_rem_melee_*     — 33 свep'а на ней
+	Категория в спавн-меню: "Weapons - Remorseim Melee".
+	Базовый weapon_melee и всё melee Z-City остаются нетронутыми: аддон
+	не патчит их и не переопределяет классы с теми же именами.
 
 	ЗАЧЕМ НУЖЕН ЭТОТ ФАЙЛ
 	----------------------
@@ -44,7 +53,7 @@ end
 local function AddMissing(SWEP, name, fn)
 	if SWEP[name] == nil then
 		SWEP[name] = fn
-		GP.Log("patched weapon_melee:" .. name)
+		GP.Log("patched " .. (SWEP.PrintName or "?") .. ":" .. name)
 	end
 end
 
@@ -316,7 +325,10 @@ GP.UpgradeWeapon = UpgradeWeapon
 ----------------------------------------------------------------
 
 function GP.Apply()
-	GP.PatchMelee(weapons.GetStored("weapon_melee"))
+	-- Патчи нужны ТОЛЬКО собственной базе ближнего боя Remorseim.
+	-- Базовый weapon_melee Z-City не трогаем вообще: его оружие должно
+	-- остаться ровно таким, каким его сделали авторы Z-City.
+	GP.PatchMelee(weapons.GetStored("weapon_rem_melee_base") or weapons.GetStored("weapon_melee"))
 	GP.RegisterAmmoTypes()
 	GP.RegisterAmmoTypes2()
 

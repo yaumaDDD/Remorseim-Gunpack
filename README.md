@@ -1,8 +1,14 @@
 # Remorseim Gunpack — оружие Remorseim для обычного Z-City
 
-Аддон **добавляет** в обычный Z-City (`Z-City.zip` → `z_city`) всё оружие и
-melee-swep'ы из архива Remorseim (`remorseim main.zip` → `remorseism-main`),
-которых в нём нет.
+Аддон **добавляет** в обычный Z-City (`Z-City.zip` → `z_city`) оружие и
+melee-swep'ы из архива Remorseim (`remorseim main.zip` → `remorseism-main`).
+
+* **Огнестрел и снаряжение (47 классов)** — то, чего в Z-City нет,
+  переносится как есть, на существующих базах.
+* **Весь ближний бой Remorseim (33 класса)** — отдельной веткой: своя база
+  `weapon_rem_melee_base`, свои классы `weapon_rem_melee_*`, своя категория
+  «Weapons - Remorseim Melee». Даже если предмет с таким названием в Z-City
+  уже есть, старая версия остаётся нетронутой, а рядом появляется новая.
 
 Ничего не заменяется: файлы Z-City не перезаписываются, базовые классы
 (`homigrad_base`, `weapon_melee`, `weapon_m4super`, `weapon_revolver2`,
@@ -19,10 +25,12 @@ addon/remorseim_gunpack/          ← готовый аддон (кидать в
 └── lua/
     ├── autorun/
     │   ├── sh_remorseim_gunpack.lua      слой совместимости (клиент+сервер)
+    │   ├── sh_rem_melee_decals.lua       синяки от ударов (свои decal-имена)
+    │   ├── sh_rem_hitstop.lua            хитстоп ближнего боя (из Remorseim)
     │   └── server/
     │       ├── sv_gunpack_boot.lua       список оружия + хелперы
     │       └── sv_gunpack_content.lua    ← генерируется автоматически
-    ├── weapons/                          50 стволов и melee-swep'ов
+    ├── weapons/                          47 огнестрела + 33 melee (weapon_rem_melee_*)
     └── entities/                         rem_bomb_*, ent_enhanced_hook,
                                           zbox_lootbox, граната с зажигательным
 
@@ -31,7 +39,9 @@ tools/
 └── find_content.py                       его логика
 
 build/
-├── manifest.json                         список переносимого оружия
+├── manifest.json                         список переносимого огнестрела/снаряжения
+├── melee_manifest.json                   список ближнего боя (отдельная ветка)
+├── gen_melee.py                          генератор weapon_rem_melee_*
 └── build_addon.py                        сборщик аддона
 
 content_manifest.json                     что докачать (звуки/модели)
@@ -43,12 +53,16 @@ content_manifest.json                     что докачать (звуки/м
 |---|---|---|
 | `Z-City.zip` | 192 | обычный Z-City, база |
 | `remorseim main.zip` | 240 | форк с новым оружием |
-| **новых в Remorseim** | **50** | их и переносит аддон |
+| **новых в Remorseim** | **50** | 47 переносятся как есть + 33 melee отдельной веткой |
 
-Плюс в Remorseim есть более новые версии баз (`weapon_melee`, `homigrad_base`),
-но их **нельзя** просто положить в Z-City — это замена, которая сломает весь
-остальной арсенал. Поэтому аддон берёт из них только отдельные методы
-(см. `sh_remorseim_gunpack.lua`).
+Плюс в Remorseim есть более новые версии баз (`weapon_melee`, `homigrad_base`).
+Положить их в Z-City под теми же именами нельзя — это замена, которая сломает
+весь остальной арсенал. Поэтому:
+
+* новая **melee-база** сохранена под своим классом `weapon_rem_melee_base`,
+  и на ней живёт вся ветка ближнего боя Remorseim;
+* для `homigrad_base` из неё взяты только отдельные методы
+  (см. `sh_remorseim_gunpack.lua`).
 
 ---
 
@@ -122,7 +136,7 @@ set GMOD_PATH=D:\Games\GarrysMod\garrysmod
 
 ## Что перенесено
 
-### Оружие (50)
+### Огнестрел и снаряжение (47)
 
 | класс | название | категория |
 |---|---|---|
@@ -163,9 +177,6 @@ set GMOD_PATH=D:\Games\GarrysMod\garrysmod
 | `weapon_nlglock17` | Non-lethal Glock 17 | Weapons - Pistols |
 | `weapon_nlglock26` | Non-lethal Glock 26 | Weapons - Pistols |
 | `weapon_revolverm500` | S&W M500 | Weapons - Pistols |
-| `weapon_combatknife` | M7 Bayonet | Weapons - Melee |
-| `weapon_metalbat` | Aluminium Bat | Weapons - Melee |
-| `weapon_chainsaw` | Chainsaw | Weapons - Melee |
 | `weapon_ammocrate` | Ammo Crate | ZCity Other |
 | `weapon_defibrillator` | AED | ZCity Medicine |
 | `weapon_midazolam` | Midazolam Autoinjector | ZCity Medicine |
@@ -176,6 +187,65 @@ set GMOD_PATH=D:\Games\GarrysMod\garrysmod
 | `weapon_carpetbomber` | Carpet Bomber | ZCity Other |
 | `weapon_airstrike` | Airstrike | ZCity Other |
 | `weapon_uav` | UAV | ZCity Other |
+
+### Ближний бой (33) — отдельно от Z-City
+
+Весь melee из Remorseim перенесён **отдельной веткой**, а не подменой старых классов:
+
+* база — форкнутая melee-база Remorseim, живёт как `weapon_rem_melee_base`;
+* каждый свep получил свой класс `weapon_rem_melee_<имя>`;
+* категория в спавн-меню — **Weapons - Remorseim Melee**;
+* `weapon_melee` и всё ближнее оружие Z-City остались ровно такими, как были.
+
+Поэтому, например, `weapon_bat` (Z-City) и `weapon_rem_melee_bat` (Remorseim
+версия с комбо-ударами и блоком) спокойно лежат рядом и не конфликтуют.
+
+| класс | название | примечание |
+|---|---|---|
+| `weapon_rem_melee_ballistic_shield` | Ballistic Shield (Rem) | щит, блокирует пули |
+| `weapon_rem_melee_bat` | Bat (Rem) | бейсбольная бита |
+| `weapon_rem_melee_brick` | Brick (Rem) | кирпич |
+| `weapon_rem_melee_buck200knife` | Buck 120 General (Rem) | нож |
+| `weapon_rem_melee_chainsaw` | Chainsaw (Rem) | бензопила, топливо и стамина |
+| `weapon_rem_melee_chair_leg` | Chair Leg (Rem) | ножка стула |
+| `weapon_rem_melee_combatknife` | M7 Bayonet (Rem) | штык-нож |
+| `weapon_rem_melee_hammer` | Hammer (Rem) | молоток |
+| `weapon_rem_melee_hatchet` | Hatchet (Rem) | топорик |
+| `weapon_rem_melee_hg_axe` | Fire Axe (Rem) | пожарный топор |
+| `weapon_rem_melee_hg_bottle` | Bottle (Rem) | бутылка (ломается) |
+| `weapon_rem_melee_hg_bottlebroken` | Broken Bottle (Rem) | розочка |
+| `weapon_rem_melee_hg_crowbar` | Crowbar (Rem) | монтировка |
+| `weapon_rem_melee_hg_crowbar_gordon` | Crowbar Gordon (Rem) | не спавнится, как в оригинале |
+| `weapon_rem_melee_hg_extinguisher` | Fire Extinguisher (Rem) | огнетушитель |
+| `weapon_rem_melee_hg_glassshard` | Glass Shard (Rem) | осколок стекла |
+| `weapon_rem_melee_hg_glassshard_taped` | Taped Glass Shard (Rem) | осколок с изолентой |
+| `weapon_rem_melee_hg_machete` | Machete (Rem) | мачете |
+| `weapon_rem_melee_hg_mug` | Mug (Rem) | кружка |
+| `weapon_rem_melee_hg_shovel` | Shovel (Rem) | лопата |
+| `weapon_rem_melee_hg_sledgehammer` | Sledgehammer (Rem) | кувалда |
+| `weapon_rem_melee_hg_spear` | Spear (Rem) | копьё |
+| `weapon_rem_melee_hg_spear_knife` | Modified Spear (Rem) | копьё с ножом |
+| `weapon_rem_melee_hg_spear_pro` | Pro Spear (Rem) | прокачанное копьё |
+| `weapon_rem_melee_hg_stunstick` | Stunstick (Rem) | дубинка |
+| `weapon_rem_melee_hg_tonfa` | Police Tonfa (Rem) | тонфа |
+| `weapon_rem_melee_leadpipe` | Lead Pipe (Rem) | труба |
+| `weapon_rem_melee_metalbat` | Aluminium Bat (Rem) | алюминиевая бита |
+| `weapon_rem_melee_pan` | Pan (Rem) | сковорода |
+| `weapon_rem_melee_pocketknife` | Switchblade (Rem) | выкидной нож |
+| `weapon_rem_melee_ram` | Battering Ram (Rem) | таран |
+| `weapon_rem_melee_sogknife` | SOG SEAL 2000 (Rem) | нож |
+| `weapon_rem_melee_table_leg` | Table Leg (Rem) | ножка стола |
+
+Технические отличия этой ветки:
+
+* база Remorseim умеет то, чего нет в Z-City: направленный блок, парирование,
+  clash оружия, комбо-серии, charged-атака, щит, хитстоп;
+* одноимённые хуки/команды/сети переименованы с суффиксом `_rem`
+  (`hg_tape_shard` → `hg_tape_shard_rem`, `melee_attack` → `melee_attack_rem`
+  и т.п.), чтобы не перекрывать такие же в Z-City;
+* перекрёстные ссылки внутри ветки ведут на свои классы
+  (бутылка ломается в свою розочку, осколок + скотч → свой осколок с изолентой);
+* `weapon_hg_crowbar_gordon` намеренно не появляется в меню — как в оригинале.
 
 ### Сущности, без которых оружие не работает
 
@@ -205,7 +275,8 @@ set GMOD_PATH=D:\Games\GarrysMod\garrysmod
 
 ## Технические детали совместимости
 
-Что докидывается в базовый `weapon_melee` (только если метода нет):
+Что докидывается в **свою** базу ближнего боя `weapon_rem_melee_base`
+(только если метода ещё нет — базовый `weapon_melee` Z-City не трогается):
 
 | метод | зачем |
 |---|---|
@@ -247,10 +318,15 @@ python tools\find_content.py prepare
 python tools\find_content.py build
 ```
 
-`build_addon.py` читает `build/manifest.json` (список оружия) и копирует
-lua-файлы из `.work/remorseism-main/` в `addon/remorseim_gunpack/`.
+`build_addon.py` читает `build/manifest.json` (огнестрел и снаряжение) и
+копирует lua-файлы из `.work/remorseism-main/` в `addon/remorseim_gunpack/`.
+Ближний бой он собирает отдельно, вызывая `build/gen_melee.py` по списку
+`build/melee_manifest.json` — тот делает свою базу и свои классы.
+
 Добавить ещё один ствол — дописать строку в `manifest.json` и в
-`sv_gunpack_boot.lua` (там же категория), затем пересобрать.
+`sv_gunpack_boot.lua` (там же категория). Добавить ещё один melee — строку в
+`melee_manifest.json` (и, при желании, в `GP.MeleeWeapons` в
+`sv_gunpack_boot.lua`), затем пересобрать.
 
 ---
 

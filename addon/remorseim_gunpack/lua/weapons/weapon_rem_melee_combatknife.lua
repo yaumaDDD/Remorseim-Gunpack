@@ -1,8 +1,9 @@
 if SERVER then AddCSLuaFile() end
-SWEP.Base = "weapon_melee"
-SWEP.PrintName = "M7 Bayonet"
+SWEP.Base = "weapon_rem_melee_base"
+-- Автогенерация: build/gen_melee.py — из weapon_combatknife.lua архива Remorseim
+SWEP.PrintName = "M7 Bayonet (Rem)"
 SWEP.Instructions = "This is your trusty carbon-steel fixed-blade knife.\n\nLMB to attack.\nR + LMB to change attack mode.\nRMB to block."
-SWEP.Category = "Weapons - Melee"
+SWEP.Category = "Weapons - Remorseim Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
 SWEP.Slot = 1

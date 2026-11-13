@@ -5,6 +5,10 @@ Remorseim Gunpack :: build_addon.py
 
 Копирует lua-файлы оружия из распакованного архива Remorseim в аддон.
 
+Ближний бой (melee) переносится ОТДЕЛЬНО: см. build/gen_melee.py и
+build/melee_manifest.json — там каждый свep получает свой класс
+weapon_rem_melee_* и свою базу weapon_rem_melee_base.
+
 Использование (Windows):
     python build\\build_addon.py
 или через батник:
@@ -163,6 +167,21 @@ def collect_content(man):
             new_models.update(RE_MODEL.findall(text))
             particles.update(RE_PARTICLE.findall(text))
 
+    # звуки/модели ближнего боя Remorseim
+    melee_manifest = os.path.join(ROOT, "build", "melee_manifest.json")
+    if os.path.isfile(melee_manifest):
+        with open(melee_manifest, encoding="utf-8") as f:
+            mm = json.load(f)
+        base_src = os.path.join(WORK, mm["source_root"], mm["base"]["source"])
+        texts = [read(base_src)] if os.path.isfile(base_src) else []
+        for entry in mm["weapons"]:
+            for f in weapon_files(src_root, entry["class"]):
+                texts.append(read(f))
+        for text in texts:
+            new_sounds.update(m for m in RE_SOUND.findall(text) if "models/" not in m)
+            new_models.update(RE_MODEL.findall(text))
+            particles.update(RE_PARTICLE.findall(text))
+
     # модели и звуки, которые уже используются обычным Z-City, качать не надо
     sounds = sorted(s for s in new_sounds if s.lower() not in known_sounds)
     models = sorted(m for m in new_models if m.lower() not in known_models)
@@ -242,6 +261,13 @@ def main():
 
     copy_weapons(man)
     copy_entities(man)
+
+    # ближний бой — отдельно, со своей базой и своими классами
+    import gen_melee  # noqa: E402
+    sys.argv = ["gen_melee.py"]
+    if gen_melee.main() != 0:
+        log("ВНИМАНИЕ: не удалось сгенерировать ближний бой")
+
     sounds, models, particles = collect_content(man)
     write_content_manifest(man, sounds, models, particles)
 

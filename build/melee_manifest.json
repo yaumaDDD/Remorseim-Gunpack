@@ -1,0 +1,186 @@
+{
+  "_comment": [
+    "Ближний бой Remorseim переносится ОТДЕЛЬНО от Z-City: каждый ствол получает",
+    "собственный класс weapon_rem_melee_<имя> и собственную базу weapon_rem_melee_base,",
+    "которая является форкнутой (более новой) melee-базой Remorseim.",
+    "Так весь ближний бой из Remorseim существует параллельно со старым melee Z-City",
+    "и ничего в Z-City не перезаписывает.",
+    "Список генерируется/проверяется build/gen_melee.py."
+  ],
+  "source_root": "remorseism-main",
+  "base": {
+    "source": "lua/weapons/weapon_melee.lua",
+    "target_class": "weapon_rem_melee_base",
+    "print_name": "Remorseim Melee Base",
+    "category": "Weapons - Remorseim Melee"
+  },
+  "prefix": "weapon_rem_melee_",
+  "category": "Weapons - Remorseim Melee",
+  "weapons": [
+    {
+      "class": "weapon_ballistic_shield",
+      "note": "Ballistic Shield — щит, блокирует пули",
+      "print_name": "Ballistic Shield (Rem)"
+    },
+    {
+      "class": "weapon_bat",
+      "note": "Bat — бейсбольная бита",
+      "print_name": "Bat (Rem)"
+    },
+    {
+      "class": "weapon_brick",
+      "note": "Brick — кирпич",
+      "print_name": "Brick (Rem)"
+    },
+    {
+      "class": "weapon_buck200knife",
+      "note": "Buck 120 General — нож",
+      "print_name": "Buck 120 General (Rem)"
+    },
+    {
+      "class": "weapon_chainsaw",
+      "note": "Chainsaw — бензопила, топливо и стамина",
+      "print_name": "Chainsaw (Rem)"
+    },
+    {
+      "class": "weapon_chair_leg",
+      "note": "Chair leg — ножка стула",
+      "print_name": "Chair Leg (Rem)"
+    },
+    {
+      "class": "weapon_combatknife",
+      "note": "M7 Bayonet — штык-нож",
+      "print_name": "M7 Bayonet (Rem)"
+    },
+    {
+      "class": "weapon_hammer",
+      "note": "Hammer — молоток",
+      "print_name": "Hammer (Rem)"
+    },
+    {
+      "class": "weapon_hatchet",
+      "note": "Hatchet — топорик",
+      "print_name": "Hatchet (Rem)"
+    },
+    {
+      "class": "weapon_hg_axe",
+      "note": "Fire Axe — пожарный топор",
+      "print_name": "Fire Axe (Rem)"
+    },
+    {
+      "class": "weapon_hg_bottle",
+      "note": "Bottle — бутылка (ломается)",
+      "print_name": "Bottle (Rem)"
+    },
+    {
+      "class": "weapon_hg_bottlebroken",
+      "note": "Broken Bottle — розочка",
+      "print_name": "Broken Bottle (Rem)"
+    },
+    {
+      "class": "weapon_hg_crowbar",
+      "note": "Crowbar — монтировка",
+      "print_name": "Crowbar (Rem)"
+    },
+    {
+      "class": "weapon_hg_crowbar_gordon",
+      "note": "Crowbar (Gordon) — не спавнится, как в оригинале",
+      "print_name": "Crowbar Gordon (Rem)"
+    },
+    {
+      "class": "weapon_hg_extinguisher",
+      "note": "Fire Extinguisher — огнетушитель",
+      "print_name": "Fire Extinguisher (Rem)"
+    },
+    {
+      "class": "weapon_hg_glassshard",
+      "note": "Glass Shard — осколок стекла",
+      "print_name": "Glass Shard (Rem)"
+    },
+    {
+      "class": "weapon_hg_glassshard_taped",
+      "note": "Taped Glass Shard — осколок с изолентой",
+      "print_name": "Taped Glass Shard (Rem)"
+    },
+    {
+      "class": "weapon_hg_machete",
+      "note": "Machete — мачете",
+      "print_name": "Machete (Rem)"
+    },
+    {
+      "class": "weapon_hg_mug",
+      "note": "Mug — кружка",
+      "print_name": "Mug (Rem)"
+    },
+    {
+      "class": "weapon_hg_shovel",
+      "note": "Shovel — лопата",
+      "print_name": "Shovel (Rem)"
+    },
+    {
+      "class": "weapon_hg_sledgehammer",
+      "note": "Sledgehammer — кувалда",
+      "print_name": "Sledgehammer (Rem)"
+    },
+    {
+      "class": "weapon_hg_spear",
+      "note": "Spear — копьё",
+      "print_name": "Spear (Rem)"
+    },
+    {
+      "class": "weapon_hg_spear_knife",
+      "note": "Modified spear — копьё с ножом",
+      "print_name": "Modified Spear (Rem)"
+    },
+    {
+      "class": "weapon_hg_spear_pro",
+      "note": "Pro Spear — прокачанное копьё",
+      "print_name": "Pro Spear (Rem)"
+    },
+    {
+      "class": "weapon_hg_stunstick",
+      "note": "Stunstick — дубинка",
+      "print_name": "Stunstick (Rem)"
+    },
+    {
+      "class": "weapon_hg_tonfa",
+      "note": "Police Tonfa — тонфа",
+      "print_name": "Police Tonfa (Rem)"
+    },
+    {
+      "class": "weapon_leadpipe",
+      "note": "Lead Pipe — труба",
+      "print_name": "Lead Pipe (Rem)"
+    },
+    {
+      "class": "weapon_metalbat",
+      "note": "Aluminium Bat — алюминиевая бита",
+      "print_name": "Aluminium Bat (Rem)"
+    },
+    {
+      "class": "weapon_pan",
+      "note": "Pan — сковорода",
+      "print_name": "Pan (Rem)"
+    },
+    {
+      "class": "weapon_pocketknife",
+      "note": "Switchblade — выкидной нож",
+      "print_name": "Switchblade (Rem)"
+    },
+    {
+      "class": "weapon_ram",
+      "note": "Battering Ram — таран",
+      "print_name": "Battering Ram (Rem)"
+    },
+    {
+      "class": "weapon_sogknife",
+      "note": "SOG SEAL 2000 — нож",
+      "print_name": "SOG SEAL 2000 (Rem)"
+    },
+    {
+      "class": "weapon_table_leg",
+      "note": "Table leg — ножка стола",
+      "print_name": "Table Leg (Rem)"
+    }
+  ]
+}
