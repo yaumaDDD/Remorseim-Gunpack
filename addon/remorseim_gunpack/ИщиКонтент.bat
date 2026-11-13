@@ -1,16 +1,20 @@
 @echo off
-chcp 65001>nul
 setlocal EnableDelayedExpansion
-title Remorseim Gunpack - ÐºÐ¾Ð½Ñ‚ÐµÐ½Ñ‚
-cd /d "%~dp0"
+title Remorseim Gunpack - ª®­â¥­â
+cd /d "%~dp0" || (
+    echo ¥ ã¤ «®áì ¯¥à¥©â¨ ¢ ¯ ¯ªã  ¤¤®­ : %~dp0
+    pause
+    exit /b 1
+)
+
+rem …á«¨ áªà¨¯â ã¯ ¤ñâ á ®è¨¡ª®© cmd, ®ª­® ¢áñ à ¢­® ­¥ § ªà®¥âáï
+if /i "%~1"=="--debug" echo on
 
 rem ==================================================================
-rem  Ð§Ð¸ÑÑ‚Ñ‹Ð¹ batch: Ð½Ð¸ Python, Ð½Ð¸ Node, Ð½Ð¸Ñ‡ÐµÐ³Ð¾ Ð´Ð¾ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°Ñ‚ÑŒ Ð½Ðµ Ð½Ð°Ð´Ð¾.
-rem  Ð¡Ð¿Ð¸ÑÐºÐ¸ Ð½ÑƒÐ¶Ð½Ñ‹Ñ… Ñ„Ð°Ð¹Ð»Ð¾Ð² Ð»ÐµÐ¶Ð°Ñ‚ Ñ€ÑÐ´Ð¾Ð¼, Ð² tools\:
-rem      models.txt     models\weapons\hammer\w.mdl
-rem      materials.txt  materials\vgui\ak47.png
-rem      sounds.txt     sound\axe\AxeBigBite-01.wav
-rem  ÐŸÐ¾ ÑÑ‚Ñ€Ð¾ÐºÐµ Ð½Ð° Ð¿ÑƒÑ‚ÑŒ. Ð“ÐµÐ½ÐµÑ€Ð¸Ñ€ÑƒÑŽÑ‚ÑÑ Ð¿Ñ€Ð¸ ÑÐ±Ð¾Ñ€ÐºÐµ Ð°Ð´Ð´Ð¾Ð½Ð°.
+rem  —¨áâë© batch, ¡¥§ Python. ” ©« á®åà ­ñ­ ¢ ª®¤¨à®¢ª¥ cp866,
+rem  ¯®íâ®¬ã chcp ­¥ ­ã¦¥­: cmd ç¨â ¥â ¥£® áà §ã ¯à ¢¨«ì­®.
+rem  ‘¯¨áª¨ ­ã¦­ëå ä ©«®¢: tools\models.txt, materials.txt, sounds.txt
+rem  ® áâà®ª¥ ­  ¯ãâì, ¢¨¤ models\weapons\hammer\w.mdl
 rem ==================================================================
 
 set "ADDON=%CD%"
@@ -20,76 +24,61 @@ set "L_MATERIALS=%TOOLS%\materials.txt"
 set "L_SOUNDS=%TOOLS%\sounds.txt"
 
 echo ==================================================================
-echo   Remorseim Gunpack :: ÐºÐ¾Ð½Ñ‚ÐµÐ½Ñ‚ Ð´Ð»Ñ ÐÐžÐ’Ð«Ð¥ ÑÐ²ÐµÐ¿Ð¾Ð²
+echo   Remorseim Gunpack :: ª®­â¥­â ¤«ï Ž‚›• á¢¥¯®¢
 echo ==================================================================
 echo.
-echo   ÐŸÐ°Ð¿ÐºÐ° Ð°Ð´Ð´Ð¾Ð½Ð°: %ADDON%
+echo    ¯ª   ¤¤®­ : %ADDON%
 echo.
 
-if not exist "%L_MODELS%" (
-    echo [ÐžÐ¨Ð˜Ð‘ÐšÐ] ÐÐµÑ‚ tools\models.txt - Ð½ÐµÑ‡ÐµÐ³Ð¾ Ð¸ÑÐºÐ°Ñ‚ÑŒ.
-    echo Ð¡Ð¿Ð¸ÑÐºÐ¸ ÑÐ¾Ð·Ð´Ð°ÑŽÑ‚ÑÑ Ð¿Ñ€Ð¸ ÑÐ±Ð¾Ñ€ÐºÐµ Ð°Ð´Ð´Ð¾Ð½Ð°. Ð’Ð¾Ð·ÑŒÐ¼Ð¸Ñ‚Ðµ Ð³Ð¾Ñ‚Ð¾Ð²Ñ‹Ð¹ Ð°Ñ€Ñ…Ð¸Ð²,
-    echo Ñ‚Ð°Ð¼ Ð¾Ð½Ð¸ ÑƒÐ¶Ðµ Ð»ÐµÐ¶Ð°Ñ‚.
-    echo.
-    pause
-    exit /b 2
-)
+if not exist "%L_MODELS%" goto no_lists
 
 rem ------------------------------------------------------------------
-rem  ÐŸÑƒÑ‚ÑŒ Ðº Garry's Mod
+rem  ãâì ª Garry's Mod
 rem ------------------------------------------------------------------
 set "GM="
 if not "%GMOD_PATH%"=="" if exist "%GMOD_PATH%\" set "GM=%GMOD_PATH%"
 if not defined GM call :guess_gmod
 
 if not defined GM (
-    echo Garry's Mod Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð½Ðµ Ð½Ð°ÑˆÑ‘Ð»ÑÑ.
+    echo Garry's Mod  ¢â®¬ â¨ç¥áª¨ ­¥ ­ èñ«áï.
     echo.
     set "GM_IN="
-    set /p "GM_IN=ÐŸÑƒÑ‚ÑŒ Ðº Ð¿Ð°Ð¿ÐºÐµ garrysmod (Enter - Ð¿Ñ€Ð¾Ð¿ÑƒÑÑ‚Ð¸Ñ‚ÑŒ): "
+    set /p "GM_IN=ãâì ª ¯ ¯ª¥ garrysmod (Enter - ¯à®¯ãáâ¨âì): "
     if defined GM_IN if exist "!GM_IN!\" set "GM=!GM_IN!"
 )
 
-rem ------------------------------------------------------------------
-rem  ÐšÐ¾Ñ€Ð½Ð¸ Ð¿Ð¾Ð¸ÑÐºÐ°: garrysmod, ÐµÑ‘ addons, Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿ 4000
-rem ------------------------------------------------------------------
-set "R1=%GM%"
+rem Š®à­¨ ¯®¨áª : garrysmod, ¥ñ addons, ¢®àªè®¯ 4000
+set "R1="
 set "R2="
 set "R3="
 set "R4="
 if defined GM (
+    set "R1=!GM!"
     set "R2=!GM!\addons"
     set "R3=!GM!\..\..\..\workshop\content\4000"
     set "R4=!GM!\..\..\..\..\workshop\content\4000"
-)
-
-if defined GM (
     echo garrysmod: !GM!
 ) else (
-    echo garrysmod: Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½ - Ð¸Ñ‰Ñƒ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð² Ð¿Ð°Ð¿ÐºÐ°Ñ… ÑÐ°Ð¼Ð¾Ð³Ð¾ Ð°Ð´Ð´Ð¾Ð½Ð°.
+    echo garrysmod: ­¥ ­ ©¤¥­ - ¨éã â®«ìª® ¢ ¯ ¯ª å á ¬®£®  ¤¤®­ .
 )
 echo.
 
 rem ------------------------------------------------------------------
-:quit
-if defined IDX if exist "%IDX%" del "%IDX%" >nul 2>nul
-exit /b 0
-
 :menu
 echo ------------------------------------------------------------------
-echo   Ð§Ñ‚Ð¾ Ð´ÐµÐ»Ð°ÐµÐ¼?
+echo   —â® ¤¥« ¥¬?
 echo ------------------------------------------------------------------
-echo   1 - ÐÐ°Ð¹Ñ‚Ð¸ Ð¸ Ñ€Ð°Ð·Ð»Ð¾Ð¶Ð¸Ñ‚ÑŒ: models + materials + sound
-echo   2 - Ð¢Ð¾Ð»ÑŒÐºÐ¾ models
-echo   3 - Ð¢Ð¾Ð»ÑŒÐºÐ¾ materials
-echo   4 - Ð¢Ð¾Ð»ÑŒÐºÐ¾ sound
-echo   5 - ÐŸÑ€Ð¾Ð²ÐµÑ€Ð¸Ñ‚ÑŒ, Ñ‡ÐµÐ³Ð¾ Ð½Ðµ Ñ…Ð²Ð°Ñ‚Ð°ÐµÑ‚
-echo   6 - Ð£Ð”ÐÐ›Ð˜Ð¢Ð¬ Ð»Ð¸ÑˆÐ½ÐµÐµ Ð¸Ð· models/materials/sound
-echo   7 - ÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ Ð»Ð¸ÑˆÐ½ÐµÐµ (Ð±ÐµÐ· ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ)
-echo   0 - Ð’Ñ‹Ñ…Ð¾Ð´
+echo   1 -  ©â¨ ¨ à §«®¦¨âì: models + materials + sound
+echo   2 - ’®«ìª® models
+echo   3 - ’®«ìª® materials
+echo   4 - ’®«ìª® sound
+echo   5 - à®¢¥à¨âì, ç¥£® ­¥ å¢ â ¥â
+echo   6 - “„€‹ˆ’œ «¨è­¥¥ ¨§ models/materials/sound
+echo   7 - ®ª § âì «¨è­¥¥ (¡¥§ ã¤ «¥­¨ï)
+echo   0 - ‚ëå®¤
 echo ------------------------------------------------------------------
 set "CHOICE="
-set /p "CHOICE=Ð’Ñ‹Ð±Ð¾Ñ€ [1]: "
+set /p "CHOICE=‚ë¡®à [1]: "
 if "%CHOICE%"=="" set "CHOICE=1"
 
 if "%CHOICE%"=="0" goto quit
@@ -100,12 +89,12 @@ if "%CHOICE%"=="4" goto run_sound
 if "%CHOICE%"=="5" goto scan
 if "%CHOICE%"=="6" goto prune_ask
 if "%CHOICE%"=="7" goto prune_dry
-echo ÐÐµ Ð¿Ð¾Ð½ÑÐ» Ð²Ñ‹Ð±Ð¾Ñ€ "%CHOICE%".
+echo ¥ ¯®­ï« ¢ë¡®à "%CHOICE%".
 echo.
 goto menu
 
 rem ==================================================================
-rem  ÐŸÐ¾Ð¸ÑÐº Ð¸ Ñ€Ð°ÑÐºÐ»Ð°Ð´ÐºÐ°
+rem  ®¨áª ¨ à áª« ¤ª 
 rem ==================================================================
 :run_all
 set "WANT=all"
@@ -138,28 +127,28 @@ if "%WANT%"=="sound"     call :do_list "%L_SOUNDS%"
 
 echo.
 echo ------------------------------------------------------------------
-echo   ÐÐ°Ð¹Ð´ÐµÐ½Ð¾: %FOUND%   ÑÐºÐ¾Ð¿Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¾ Ð½Ð¾Ð²Ñ‹Ñ…: %COPIED%   Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ð¾: %MISSING%
-if not "%AMBIG%"=="0" echo   ÐÐµÐ¾Ð´Ð½Ð¾Ð·Ð½Ð°Ñ‡Ð½Ñ‹Ñ… Ð¸Ð¼Ñ‘Ð½: %AMBIG% (Ñ„Ð°Ð¹Ð» ÐµÑÑ‚ÑŒ, Ð½Ð¾ Ð¿ÑƒÑ‚ÑŒ Ð½Ðµ ÑÐ¾Ð²Ð¿Ð°Ð»)
+echo    ©¤¥­®: %FOUND%   áª®¯¨à®¢ ­® ­®¢ëå: %COPIED%   ­¥ ­ ©¤¥­®: %MISSING%
+if not "%AMBIG%"=="0" echo   ¥®¤­®§­ ç­ëå ¨¬ñ­: %AMBIG%
 echo ------------------------------------------------------------------
 
 if not "%MISSING%"=="0" (
     echo.
-    echo Ð§ÐµÐ³Ð¾ Ð½ÐµÑ‚ Ð½Ð¸ Ð² garrysmod, Ð½Ð¸ Ð² Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿Ðµ:
+    echo —¥£® ­¥â ­¨ ¢ garrysmod, ­¨ ¢ ¢®àªè®¯¥:
     call :show_head "%TEMP%\rem_missing.txt" 40
     echo.
-    echo ÐŸÑ€Ð¾Ñ‰Ðµ Ð²ÑÐµÐ³Ð¾ Ð¿Ð¾Ð´Ð¿Ð¸ÑÐ°Ñ‚ÑŒÑÑ Ð½Ð° Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿-Ð°Ð´Ð´Ð¾Ð½Ñ‹ Z-City Ð¸ Remorseim.
+    echo à®é¥ ¢á¥£® ¯®¤¯¨á âìáï ­  ¢®àªè®¯- ¤¤®­ë Z-City ¨ Remorseim.
 )
 
 if not "%AMBIG%"=="0" (
     echo.
-    echo Ð˜Ð¼Ñ Ñ„Ð°Ð¹Ð»Ð° Ð²ÑÑ‚Ñ€ÐµÑ‡Ð°ÐµÑ‚ÑÑ Ñƒ Ð½ÐµÑÐºÐ¾Ð»ÑŒÐºÐ¸Ñ… Ð¼Ð¾Ð´ÐµÐ»ÐµÐ¹ - Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑŒÑ‚Ðµ Ñ€ÑƒÐºÐ°Ð¼Ð¸:
+    echo ˆ¬ï ä ©«  ¢áâà¥ç ¥âáï ­¥áª®«ìª® à § - ¯à®¢¥àìâ¥ àãª ¬¨:
     call :show_head "%TEMP%\rem_ambig.txt" 15
 )
 goto after
 
 rem ----------------------------------------------------------------
 :do_list
-rem %1 = Ñ„Ð°Ð¹Ð» ÑÐ¾ ÑÐ¿Ð¸ÑÐºÐ¾Ð¼ Ð¾Ñ‚Ð½Ð¾ÑÐ¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ñ… Ð¿ÑƒÑ‚ÐµÐ¹
+rem %1 = ä ©« á® á¯¨áª®¬ ®â­®á¨â¥«ì­ëå ¯ãâ¥©
 if not exist "%~1" goto :eof
 for /f "usebackq delims=" %%R in ("%~1") do call :one_file "%%R"
 goto :eof
@@ -197,76 +186,81 @@ goto :eof
 
 rem ----------------------------------------------------------------
 :locate
-rem %~1 = Ð¾Ñ‚Ð½Ð¾ÑÐ¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¹ Ð¿ÑƒÑ‚ÑŒ. ÐÐ° Ð²Ñ‹Ñ…Ð¾Ð´Ðµ SRC (Ð¿ÑƒÑÑ‚Ð¾, ÐµÑÐ»Ð¸ Ð½Ðµ Ð½Ð°ÑˆÐ»Ð¸).
+rem %~1 = ®â­®á¨â¥«ì­ë© ¯ãâì.   ¢ëå®¤¥ SRC (¯ãáâ®, ¥á«¨ ­¥ ­ è«¨).
 set "REL=%~1"
 set "SRC="
 
-rem 1) Ñ‚Ð¾Ñ‡Ð½Ñ‹Ð¹ Ð¿ÑƒÑ‚ÑŒ Ð¾Ñ‚ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ ÐºÐ¾Ñ€Ð½Ñ - ÑÑ‚Ð¾ Ð±Ñ‹ÑÑ‚Ñ€Ð¾, Ñ‡Ð°Ñ‰Ðµ Ð²ÑÐµÐ³Ð¾ ÑÑ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚
+rem ’®ç­ë© ¯ãâì ®â ª ¦¤®£® ª®à­ï: íâ® ¡ëáâà® ¨ ç é¥ ¢á¥£® áà ¡ âë¢ ¥â
 for %%R in ("%R1%" "%R2%" "%R3%" "%R4%") do (
     if not "%%~R"=="" if not defined SRC if exist "%%~fR\%REL%" set "SRC=%%~fR\%REL%"
 )
 if defined SRC goto :eof
+if not defined R1 goto :eof
 
-rem 2) ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ð° Ð¿Ð°Ð¿Ð¾Ðº Ð² Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿Ðµ Ð´Ñ€ÑƒÐ³Ð°Ñ, Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ Ð¸Ñ‰ÐµÐ¼ Ð¿Ð¾ Ð¸Ð¼ÐµÐ½Ð¸ Ñ„Ð°Ð¹Ð»Ð°.
-rem    ÐžÐ±Ñ…Ð¾Ð´Ð¸Ñ‚ÑŒ Ð´ÐµÑ€ÐµÐ²Ð¾ Ð½Ð° ÐºÐ°Ð¶Ð´Ñ‹Ð¹ Ð¸Ð· ÑÐ¾Ñ‚ÐµÐ½ Ð¿ÑƒÑ‚ÐµÐ¹ Ð½ÐµÐ»ÑŒÐ·Ñ - ÑÑ‚Ñ€Ð¾Ð¸Ð¼ Ð¸Ð½Ð´ÐµÐºÑ
-rem    Ð¾Ð´Ð¸Ð½ Ñ€Ð°Ð· Ð¸ Ð´Ð°Ð»ÑŒÑˆÐµ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñ‡Ð¸Ñ‚Ð°ÐµÐ¼ ÐµÐ³Ð¾.
+rem ‘âàãªâãà  ¯ ¯®ª ¢ ¢®àªè®¯¥ ¤àã£ ï, ¯®íâ®¬ã ¨é¥¬ ¯® ¨­¤¥ªáã.
 call :ensure_index
 if not exist "%IDX%" goto :eof
 
+rem 1) á®¢¯ « å¢®áâ ¯ãâ¨ - íâ® â®ç­® ®­
+call :search_index "\%REL%" 1
+if defined SRC goto :eof
+
+rem 2) á®¢¯ «® â®«ìª® ¨¬ï ä ©« 
 for %%F in ("%REL%") do set "BASE=%%~nxF"
 if not defined BASE goto :eof
 
-rem Ð˜Ñ‰ÐµÐ¼ Ð¿Ð¾ Ð¸Ð¼ÐµÐ½Ð¸. Ð•ÑÐ»Ð¸ Ñ…Ð²Ð¾ÑÑ‚ Ð¿ÑƒÑ‚Ð¸ ÑÐ¾Ð²Ð¿Ð°Ð» - Ð±ÐµÑ€Ñ‘Ð¼ ÐµÐ³Ð¾. Ð•ÑÐ»Ð¸ ÑÐ¾Ð²Ð¿Ð°Ð» Ñ‚Ð¾Ð»ÑŒÐºÐ¾
-rem Ð¸Ð¼Ñ Ð¸ Ñ‚Ð°ÐºÐ¸Ñ… Ñ„Ð°Ð¹Ð»Ð¾Ð² Ð½ÐµÑÐºÐ¾Ð»ÑŒÐºÐ¾ - ÐÐ• ÑƒÐ³Ð°Ð´Ñ‹Ð²Ð°ÐµÐ¼: ÑÑ‚Ð¾ Ð¼Ð¾Ð¶ÐµÑ‚ Ð±Ñ‹Ñ‚ÑŒ Ñ‡ÑƒÐ¶Ð°Ñ
-rem Ð¼Ð¾Ð´ÐµÐ»ÑŒ Ñ Ñ‚ÐµÐ¼ Ð¶Ðµ Ð¸Ð¼ÐµÐ½ÐµÐ¼, Ð»ÑƒÑ‡ÑˆÐµ ÑÐ¾Ð¾Ð±Ñ‰Ð¸Ñ‚ÑŒ Ð¸ Ð¾ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ Ð¼ÐµÑÑ‚Ð¾ Ð¿ÑƒÑÑ‚Ñ‹Ð¼.
-set "EXACT="
+call :search_index "\%BASE%" 2
+goto :eof
+
+rem ----------------------------------------------------------------
+:search_index
+rem %1 = è ¡«®­ ¤«ï findstr, %2 = 1 â®ç­®¥ á®¢¯ ¤¥­¨¥, 2 ¯® ¨¬¥­¨
+del "%TEMP%\rem_hit.txt" >nul 2>nul
+findstr /i /e /l /c:"%~1" "%IDX%" > "%TEMP%\rem_hit.txt" 2>nul
+if not exist "%TEMP%\rem_hit.txt" goto :eof
+
+rem ‘ç¨â ¥¬ á®¢¯ ¤¥­¨ï á ¬¨: ¢ë¢®¤ find /c § ¢¨á¨â ®â «®ª «¨ ¨ ä®à¬ â 
+set "CNT=0"
 set "FIRST="
-set "COUNT=0"
-
-for /f "usebackq delims=" %%H in (`findstr /i /e /l /c:"\%BASE%" "%IDX%"`) do (
-    set /a COUNT+=1
+set "SECOND="
+for /f "usebackq delims=" %%H in ("%TEMP%\rem_hit.txt") do (
+    set /a CNT+=1
     if not defined FIRST set "FIRST=%%H"
-    if not defined EXACT (
-        echo %%H| findstr /i /e /l /c:"\%REL%" >nul
-        if not errorlevel 1 set "EXACT=%%H"
-    )
+    if not defined SECOND if defined FIRST if "%%H" neq "!FIRST!" set "SECOND=%%H"
 )
+if "%CNT%"=="0" goto :eof
 
-if defined EXACT (
-    set "SRC=%EXACT%"
+if "%~2"=="1" (
+    set "SRC=!FIRST!"
     goto :eof
 )
 
-if "%COUNT%"=="1" (
-    set "SRC=%FIRST%"
+if "%CNT%"=="1" (
+    set "SRC=!FIRST!"
     goto :eof
 )
 
-if "%COUNT%"=="0" goto :eof
-
-rem Ð½ÐµÐ¾Ð´Ð½Ð¾Ð·Ð½Ð°Ñ‡Ð½Ð¾
+rem ­¥áª®«ìª® ä ©«®¢ á â ª¨¬ ¨¬¥­¥¬ - ­¥ ã£ ¤ë¢ ¥¬
 set /a AMBIG+=1
 >>"%TEMP%\rem_ambig.txt" echo %REL%
 goto :eof
 
 rem ----------------------------------------------------------------
 :ensure_index
-rem ÐžÐ´Ð¸Ð½ Ð¾Ð±Ñ…Ð¾Ð´ garrysmod + addons + Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿Ð°. Ð ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ ÐºÑÑˆÐ¸Ñ€ÑƒÐµÑ‚ÑÑ Ð½Ð° Ð·Ð°Ð¿ÑƒÑÐº.
+rem Ž¤¨­ ®¡å®¤ garrysmod + addons + ¢®àªè®¯ , à¥§ã«ìâ â ªíè¨àã¥âáï
 if defined IDX goto :eof
-set "IDX=%TEMP%\rem_index_%RANDOM%.txt"
+set "IDX=%TEMP%\rem_index.txt"
 del "%IDX%" >nul 2>nul
 
-echo   ÑÑ‚Ñ€Ð¾ÑŽ Ð¸Ð½Ð´ÐµÐºÑ Ñ„Ð°Ð¹Ð»Ð¾Ð² garrysmod Ð¸ Ð²Ð¾Ñ€ÐºÑˆÐ¾Ð¿Ð° (Ð¾Ð´Ð¸Ð½ Ñ€Ð°Ð·, Ð¼Ð¾Ð¶ÐµÑ‚ Ð·Ð°Ð½ÑÑ‚ÑŒ Ð¼Ð¸Ð½ÑƒÑ‚Ñƒ)...
+echo   áâà®î ¨­¤¥ªá ä ©«®¢ ª®­â¥­â  - ®¤¨­ à §, ¬®¦¥â § ­ïâì ¬¨­ãâã...
 for %%R in ("%R1%" "%R2%" "%R3%" "%R4%") do (
-    if not "%%~R"=="" if exist "%%~fR\" (
-        dir /b /s /a-d "%%~fR\*" 2>nul >>"%IDX%"
-    )
+    if not "%%~R"=="" if exist "%%~fR\" dir /b /s /a-d "%%~fR\*" 2>nul >>"%IDX%"
 )
 if not exist "%IDX%" set "IDX="
 goto :eof
 
 rem ==================================================================
-rem  ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ°: Ñ‡ÐµÐ³Ð¾ Ð½Ðµ Ñ…Ð²Ð°Ñ‚Ð°ÐµÑ‚
+rem  à®¢¥àª : ç¥£® ­¥ å¢ â ¥â
 rem ==================================================================
 :scan
 echo.
@@ -288,30 +282,30 @@ for %%L in ("%L_MODELS%" "%L_MATERIALS%" "%L_SOUNDS%") do (
 )
 
 echo ------------------------------------------------------------------
-echo   ÐÐ° Ð¼ÐµÑÑ‚Ðµ: %HAVE%   Ð½Ðµ Ñ…Ð²Ð°Ñ‚Ð°ÐµÑ‚: %LACK%
+echo     ¬¥áâ¥: %HAVE%   ­¥ å¢ â ¥â: %LACK%
 echo ------------------------------------------------------------------
 if not "%LACK%"=="0" (
     echo.
-    echo ÐÐµ Ñ…Ð²Ð°Ñ‚Ð°ÐµÑ‚:
+    echo ¥ å¢ â ¥â:
     call :show_head "%TEMP%\rem_lack.txt" 40
 ) else (
     echo.
-    echo Ð’ÑÑ‘, Ñ‡Ñ‚Ð¾ Ð½ÑƒÐ¶Ð½Ð¾ Ð½Ð¾Ð²Ñ‹Ð¼ ÑÐ²ep'Ð°Ð¼, Ð»ÐµÐ¶Ð¸Ñ‚ Ð² Ð¿Ð°Ð¿ÐºÐ°Ñ… Ð°Ð´Ð´Ð¾Ð½Ð°.
+    echo ‚áñ, çâ® ­ã¦­® ­®¢ë¬ á¢ep' ¬, «¥¦¨â ¢ ¯ ¯ª å  ¤¤®­ .
 )
 goto after
 
 rem ==================================================================
-rem  Ð§Ð¸ÑÑ‚ÐºÐ° Ð»Ð¸ÑˆÐ½ÐµÐ³Ð¾
+rem  —¨áâª  «¨è­¥£®
 rem ==================================================================
 :prune_ask
 echo.
-echo Ð’ÐÐ˜ÐœÐÐÐ˜Ð•: Ð±ÑƒÐ´ÑƒÑ‚ Ð£Ð”ÐÐ›Ð•ÐÐ« Ñ„Ð°Ð¹Ð»Ñ‹ Ð¸Ð· models/materials/sound,
-echo ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… Ð½ÐµÑ‚ Ð² ÑÐ¿Ð¸ÑÐºÐ°Ñ… tools\*.txt.
+echo ‚ˆŒ€ˆ…: ¡ã¤ãâ “„€‹…› ä ©«ë ¨§ models/materials/sound,
+echo ª®â®àëå ­¥â ¢ á¯¨áª å tools\models.txt, materials.txt, sounds.txt.
 echo.
 set "OK="
-set /p "OK=Ð¢Ð¾Ñ‡Ð½Ð¾ ÑƒÐ´Ð°Ð»Ð¸Ñ‚ÑŒ? (yes/no) [no]: "
+set /p "OK=’®ç­® ã¤ «¨âì? (yes/no) [no]: "
 if /i not "%OK%"=="yes" (
-    echo ÐžÑ‚Ð¼ÐµÐ½ÐµÐ½Ð¾.
+    echo Žâ¬¥­¥­®.
     goto menu
 )
 set "DO_DELETE=1"
@@ -322,10 +316,8 @@ echo.
 set "DO_DELETE=0"
 
 :prune_run
-rem Ð¡Ð»Ð¾Ð²Ð°Ñ€ÑŒ Ð½ÑƒÐ¶Ð½Ñ‹Ñ… Ñ„Ð°Ð¹Ð»Ð¾Ð²: ÐºÐ»ÑŽÑ‡ = Ð¸Ð¼Ñ Ñ„Ð°Ð¹Ð»Ð°, Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ = 1.
-rem Ð¡Ñ€Ð°Ð²Ð½Ð¸Ð²Ð°ÐµÐ¼ Ð¿Ð¾ Ð¸Ð¼ÐµÐ½Ð¸, Ð° Ð½Ðµ Ð¿Ð¾ Ð¿Ð¾Ð»Ð½Ð¾Ð¼Ñƒ Ð¿ÑƒÑ‚Ð¸: ÐµÑÐ»Ð¸ Ñ‚Ð°ÐºÐ¾Ðµ Ð¸Ð¼Ñ Ð½ÑƒÐ¶Ð½Ð¾
-rem Ñ…Ð¾Ñ‚Ñ Ð±Ñ‹ Ð¾Ð´Ð½Ð¾Ð¹ Ð¼Ð¾Ð´ÐµÐ»Ð¸ - Ñ„Ð°Ð¹Ð» Ð¾ÑÑ‚Ð°Ð²Ð»ÑÐµÐ¼. Ð›ÑƒÑ‡ÑˆÐµ Ð¾ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ Ð»Ð¸ÑˆÐ½ÐµÐµ,
-rem Ñ‡ÐµÐ¼ ÑÐ½ÐµÑÑ‚Ð¸ Ð½ÑƒÐ¶Ð½Ð¾Ðµ.
+rem ‘«®¢ àì ­ã¦­ëå ä ©«®¢ ¯® ¨¬¥­¨: ¥á«¨ ¨¬ï ­ã¦­® å®âï ¡ë ®¤­®© ¬®¤¥«¨,
+rem ä ©« ®áâ ¢«ï¥¬. ‹ãçè¥ ®áâ ¢¨âì «¨è­¥¥, ç¥¬ á­¥áâ¨ ­ã¦­®¥.
 set "JUNK=0"
 set "KEPT=0"
 
@@ -352,17 +344,20 @@ for %%K in (models materials sound) do (
                 set /a JUNK+=1
                 if "%DO_DELETE%"=="1" (
                     del /f /q "%%~fF" >nul 2>nul
-                    echo   ÑƒÐ´Ð°Ð»Ñ‘Ð½: %%~fF
+                    set "P=%%~fF"
+                    set "P=!P:^&=^^&!"
+                    echo   ã¤ «ñ­: !P!
                 ) else (
-                    echo   Ð»Ð¸ÑˆÐ½Ð¸Ð¹: %%~fF
+                    set "P=%%~fF"
+                    set "P=!P:^&=^^&!"
+                    echo   «¨è­¨©: !P!
                 )
             )
         )
     )
 )
 
-rem Ð¿ÑƒÑÑ‚Ñ‹Ðµ Ð¿Ð°Ð¿ÐºÐ¸: rd Ð¿Ð°Ð´Ð°ÐµÑ‚ Ð½Ð° Ð½ÐµÐ¿ÑƒÑÑ‚Ñ‹Ñ…, Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ Ñ‚Ñ€Ð¸ Ð¿Ñ€Ð¾Ñ…Ð¾Ð´Ð°
-rem Ð¿Ð¾Ð´Ñ€ÑÐ´ ÑÐ½Ð¾ÑÑÑ‚ Ð¸ Ð²Ð»Ð¾Ð¶ÐµÐ½Ð½Ñ‹Ðµ, Ð¸ Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒÑÐºÐ¸Ðµ
+rem ãáâë¥ ¯ ¯ª¨: rd ¯ ¤ ¥â ­  ­¥¯ãáâëå, ¯®íâ®¬ã âà¨ ¯à®å®¤  ¯®¤àï¤
 if "%DO_DELETE%"=="1" (
     for %%P in (1 2 3) do (
         for %%K in (models materials sound) do (
@@ -376,32 +371,41 @@ if "%DO_DELETE%"=="1" (
 echo.
 echo ------------------------------------------------------------------
 if "%DO_DELETE%"=="1" (
-    echo   Ð£Ð´Ð°Ð»ÐµÐ½Ð¾ Ð»Ð¸ÑˆÐ½ÐµÐ³Ð¾: %JUNK%   Ð¾ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ð¾ Ð½ÑƒÐ¶Ð½Ð¾Ð³Ð¾: %KEPT%
+    echo   “¤ «¥­® «¨è­¥£®: %JUNK%   ®áâ ¢«¥­® ­ã¦­®£®: %KEPT%
 ) else (
-    echo   Ð›Ð¸ÑˆÐ½ÐµÐ³Ð¾: %JUNK%   Ð½ÑƒÐ¶Ð½Ð¾Ð³Ð¾: %KEPT%
-    echo   Ð­Ñ‚Ð¾ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð¿Ð¾ÐºÐ°Ð·. Ð”Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ - Ð¿ÑƒÐ½ÐºÑ‚ 6.
+    echo   ‹¨è­¥£®: %JUNK%   ­ã¦­®£®: %KEPT%
+    echo   â® â®«ìª® ¯®ª §. „«ï ã¤ «¥­¨ï - ¯ã­ªâ 6.
 )
 echo ------------------------------------------------------------------
 goto after
 
 rem ==================================================================
-rem  Ð’ÑÐ¿Ð¾Ð¼Ð¾Ð³Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ðµ
+rem  ‚á¯®¬®£ â¥«ì­®¥
 rem ==================================================================
 :show_head
-rem %1 = Ñ„Ð°Ð¹Ð», %2 = ÑÐºÐ¾Ð»ÑŒÐºÐ¾ ÑÑ‚Ñ€Ð¾Ðº Ð¿Ð¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ
+rem %1 = ä ©«, %2 = áª®«ìª® áâà®ª ¯®ª § âì
 if not exist "%~1" goto :eof
 set "N=0"
+set "TOTAL=0"
 for /f "usebackq delims=" %%M in ("%~1") do (
-    set /a N+=1
-    if !N! LEQ %~2 echo   %%M
+    set /a TOTAL+=1
+    if !TOTAL! LEQ %~2 (
+        set /a N+=1
+        set "P=%%M"
+        set "P=!P:^&=^^&!"
+        echo     !P!
+    )
 )
-if !N! GTR %~2 echo   ... Ð²ÑÐµÐ³Ð¾ %N%, Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº: %~1
+if !TOTAL! GTR %~2 echo     ... ¢á¥£® !TOTAL!, ¯®«­ë© á¯¨á®ª: %~1
 goto :eof
 
 rem ----------------------------------------------------------------
 :guess_gmod
-rem ÑÐ½Ð°Ñ‡Ð°Ð»Ð° Ñ€ÐµÐµÑÑ‚Ñ€: Ð¿ÑƒÑ‚ÑŒ Ðº Steam, Ð¿Ð¾Ñ‚Ð¾Ð¼ Ñ‚Ð¸Ð¿Ð¾Ð²Ñ‹Ðµ Ð¿Ð°Ð¿ÐºÐ¸
-for /f "tokens=2*" %%A in ('reg query "HKCU\Software\Valve\Steam" /v SteamPath 2^>nul ^| findstr /i "SteamPath"') do (
+rem ‘­ ç «  à¥¥áâà Steam, ¯®â®¬ â¨¯®¢ë¥ ¯ ¯ª¨
+for /f "tokens=2,*" %%A in ('reg query "HKCU\Software\Valve\Steam" /v SteamPath 2^>nul ^| findstr /i "SteamPath"') do (
+    if not defined GM if exist "%%~B\steamapps\common\GarrysMod\garrysmod\" set "GM=%%~B\steamapps\common\GarrysMod\garrysmod"
+)
+for /f "tokens=2,*" %%A in ('reg query "HKLM\SOFTWARE\WOW6432Node\Valve\Steam" /v InstallPath 2^>nul ^| findstr /i "InstallPath"') do (
     if not defined GM if exist "%%~B\steamapps\common\GarrysMod\garrysmod\" set "GM=%%~B\steamapps\common\GarrysMod\garrysmod"
 )
 for %%P in (
@@ -417,8 +421,23 @@ for %%P in (
 goto :eof
 
 rem ----------------------------------------------------------------
+:no_lists
+echo [Ž˜ˆŠ€] ¥â ä ©«  tools\models.txt - ¨áª âì ­¥ç¥£®.
+echo.
+echo â¨ á¯¨áª¨ á®§¤ îâáï ¯à¨ á¡®àª¥  ¤¤®­ . ‚®§ì¬¨â¥ £®â®¢ë©  àå¨¢
+echo remorseim_gunpack.zip - â ¬ ®­¨ ã¦¥ «¥¦ â.
+echo.
+pause
+exit /b 2
+
+rem ----------------------------------------------------------------
+:quit
+if defined IDX if exist "%IDX%" del "%IDX%" >nul 2>nul
+exit /b 0
+
 :after
 if defined IDX if exist "%IDX%" del "%IDX%" >nul 2>nul
 echo.
-pause
+echo  ¦¬¨â¥ «î¡ãî ª« ¢¨èã, çâ®¡ë § ªàëâì ®ª­®...
+pause >nul
 exit /b 0
