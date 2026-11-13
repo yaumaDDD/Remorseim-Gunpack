@@ -66,6 +66,19 @@ content_manifest.json                     что докачать (звуки/м
 
 ---
 
+## Скачать
+
+Готовый архив аддона лежит прямо в репозитории:
+
+**https://github.com/yaumaDDD/Remorseim-Gunpack/raw/v1.0.0/build_output/remorseim_gunpack.zip** (~282 КБ)
+
+Если ссылка не открывается — откройте
+`build_output/remorseim_gunpack.zip` в репозитории и нажмите «Download».
+
+Внутри уже распакованная папка `remorseim_gunpack` — её и кидать в `garrysmod/addons/`.
+
+---
+
 ## Установка
 
 1. Скопируйте папку `addon/remorseim_gunpack` в:
