@@ -1,0 +1,15 @@
+# Распакованные копии архивов (см. tools/ИщиКонтент.bat)
+.work/
+
+# Артефакты сборки
+*.gma
+build_output/
+
+# Мусор ОС/редакторов
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Python bytecache
+__pycache__/
+*.pyc

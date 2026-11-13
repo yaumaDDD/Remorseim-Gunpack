@@ -1,0 +1,23 @@
+{
+  "title": "Remorseim Gunpack (for Z-City)",
+  "type": "weapon",
+  "tags": [
+    "fun",
+    "realism"
+  ],
+  "ignore": [
+    "*.md",
+    "*.py",
+    "*.bat",
+    "*.zip",
+    "*.json",
+    ".git",
+    ".github",
+    ".work",
+    "addon",
+    "tools",
+    "build",
+    "resources",
+    "content_manifest.json"
+  ]
+}
