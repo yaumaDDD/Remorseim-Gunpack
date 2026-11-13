@@ -131,14 +131,16 @@ DeploySnd HolsterSnd AttackHit Attack2Hit AttackHitFlesh Attack2HitFlesh AttackS
 SuicideSound hitSound hitSoundFlesh swingsound swingsound2 soundswing chainsaw""".split()
 
 RE_SOUND = re.compile(r'["\']((?:sound/)?[A-Za-z0-9_\-/\.]+\.(?:wav|ogg|mp3))["\']')
-RE_MODEL = re.compile(r'["\'](models/[^"\']+\.mdl)["\']')
+RE_MODEL = re.compile(r'["\'](models/[^"\']+\.(?:mdl|vvd|vtx|phy|ani))["\']')
 RE_PARTICLE = re.compile(r'PrecacheParticleSystem\s*\(\s*["\']([^"\']+)["\']')
+# материалы: Material("vgui/x.png"), Material("zbattle/blood")
+RE_MATERIAL = re.compile(r'\b(?:Material|CreateMaterial)\(\s*["\']([^"\']+)["\']')
 
 
 def z_city_known_refs():
     """Собираем все пути, которые уже упоминает обычный Z-City."""
     zdir = os.path.join(WORK, "z_city")
-    sounds, models = set(), set()
+    sounds, models, materials = set(), set(), set()
     for dirpath, _, files in os.walk(zdir):
         for fn in files:
             if not fn.endswith(".lua"):
@@ -149,44 +151,131 @@ def z_city_known_refs():
                 continue
             sounds.update(m.lower() for m in RE_SOUND.findall(text))
             models.update(m.lower() for m in RE_MODEL.findall(text))
-    return sounds, models
+            materials.update(m.lower() for m in RE_MATERIAL.findall(text))
+    return sounds, models, materials
 
 
-def collect_content(man):
-    """Возвращает (sounds, models), которые нужны новому оружию,
-    но не упоминаются в обычном Z-City."""
-    known_sounds, known_models = z_city_known_refs()
-
+def content_sources(man):
+    """Все lua-файлы, которые попадут в аддон: огнестрел + база melee + меlee."""
     src_root = os.path.join(WORK, man["source_root"], "lua", "weapons")
-    new_sounds, new_models, particles = set(), set(), set()
+    texts = []
 
     for entry in man["weapons"]:
         for f in weapon_files(src_root, entry["class"]):
-            text = read(f)
-            new_sounds.update(m for m in RE_SOUND.findall(text) if "models/" not in m)
-            new_models.update(RE_MODEL.findall(text))
-            particles.update(RE_PARTICLE.findall(text))
+            texts.append(read(f))
 
-    # звуки/модели ближнего боя Remorseim
     melee_manifest = os.path.join(ROOT, "build", "melee_manifest.json")
     if os.path.isfile(melee_manifest):
         with open(melee_manifest, encoding="utf-8") as f:
             mm = json.load(f)
         base_src = os.path.join(WORK, mm["source_root"], mm["base"]["source"])
-        texts = [read(base_src)] if os.path.isfile(base_src) else []
+        if os.path.isfile(base_src):
+            texts.append(read(base_src))
         for entry in mm["weapons"]:
             for f in weapon_files(src_root, entry["class"]):
                 texts.append(read(f))
-        for text in texts:
-            new_sounds.update(m for m in RE_SOUND.findall(text) if "models/" not in m)
-            new_models.update(RE_MODEL.findall(text))
-            particles.update(RE_PARTICLE.findall(text))
 
-    # модели и звуки, которые уже используются обычным Z-City, качать не надо
-    sounds = sorted(s for s in new_sounds if s.lower() not in known_sounds)
+    # скрипты, которые лежат в аддоне рядом с оружием (хитстоп, синяки)
+    lua_dir = os.path.join(ADDON, "lua")
+    for dirpath, _, files in os.walk(lua_dir):
+        if os.sep + "weapons" in dirpath:
+            continue
+        for fn in files:
+            if fn.endswith(".lua"):
+                texts.append(read(os.path.join(dirpath, fn)))
+
+    return texts
+
+
+def material_path(name):
+    """'vgui/x.png' -> 'materials/vgui/x.png'; 'zbattle/blood' -> 'materials/zbattle/blood.vmt'."""
+    name = name.strip().replace("\\", "/").lstrip("/")
+    if name.lower().startswith("materials/"):
+        return name
+    if not os.path.splitext(name)[1]:
+        name += ".vmt"
+    return "materials/" + name
+
+
+def expand_model(path):
+    """Для .mdl нужны ещё vvd/vtx/phy — без них модель не загрузится."""
+    if not path.lower().endswith(".mdl"):
+        return [path]
+    base = path[:-4]
+    return [path, base + ".vvd", base + ".vtx", base + ".phy"]
+
+
+def collect_content(man):
+    """Возвращает (sounds, models, materials, particles) для новых свep'ов,
+    которых нет в обычном Z-City."""
+    known_sounds, known_models, known_materials = z_city_known_refs()
+
+    new_sounds, new_models, new_materials, particles = set(), set(), set(), set()
+
+    for text in content_sources(man):
+        new_sounds.update(m for m in RE_SOUND.findall(text) if "models/" not in m)
+        for mdl in RE_MODEL.findall(text):
+            new_models.update(expand_model(mdl))
+        for mat in RE_MATERIAL.findall(text):
+            # служебные материалы движка не качаем
+            if mat.lower() in ("vgui/white", "vgui/black", "cable/cable2",
+                               "debugempty", "color", "vgui/white_additive"):
+                continue
+            new_materials.add(material_path(mat))
+        particles.update(RE_PARTICLE.findall(text))
+
+    # модели, которые уже используются обычным Z-City, качать не надо
+    known_norm = set()
+    for k in known_sounds:
+        k = k.replace("\\", "/").lower()
+        known_norm.add(k)
+        known_norm.add(k[len("sound/"):] if k.startswith("sound/") else k)
+
+    sounds = sorted({
+        s for s in (normalize_sound_path(x) for x in new_sounds)
+        if s.lower() not in known_norm and s.lower()[len("sound/"):] not in known_norm
+    })
     models = sorted(m for m in new_models if m.lower() not in known_models)
-    return sounds, models, sorted(particles)
+    materials = sorted(m for m in new_materials if m.lower() not in known_materials)
+    return sounds, models, materials, sorted(particles)
 
+
+def content_dir_name(path):
+    """Куда класть файл: 'models', 'materials' или 'sound' (внутри аддона)."""
+    p = path.lower()
+    if p.startswith("models/"):
+        return "models"
+    if p.startswith("materials/"):
+        return "materials"
+    return "sound"
+
+
+def write_placeholder_dirs(sounds, models, materials):
+    """Создаёт в аддоне пустые (но существующие) папки models/ materials/ sound/
+    с README внутри — контент туда кладёт батник."""
+    roots = {
+        "models": models,
+        "materials": materials,
+        "sound": sounds,
+    }
+    texts = {
+        "models": "Сюда батник складывает .mdl/.vvd/.vtx/.phy для НОВЫХ свep'ов Remorseim.\n"
+                  "Пути внутри повторяют garrysmod/, например models/weapons/...\n"
+                  "Файлы отсюда аддон сам раздаёт клиентам (resource.AddSingleFile).\n",
+        "materials": "Сюда батник складывает .vmt/.vtf для НОВЫХ свep'ов Remorseim\n"
+                     "(иконки в vgui/, материалы моделей и т.п.).\n"
+                     "Пути внутри повторяют garrysmod/, например materials/vgui/...\n",
+        "sound": "Сюда батник складывает .wav/.ogg для НОВЫХ свep'ов Remorseim.\n"
+                 "Пути внутри повторяют garrysmod/, например sound/axe/...\n",
+    }
+    for kind, items in roots.items():
+        d = os.path.join(ADDON, kind)
+        os.makedirs(d, exist_ok=True)
+        keep = os.path.join(d, "README.txt")
+        if not os.path.isfile(keep):
+            with open(keep, "w", encoding="utf-8", newline="\r\n") as f:
+                f.write(texts[kind])
+                f.write("\nВсего по списку: %d файл(ов).\n" % len(items))
 
 def normalize_sound_path(s):
     s = s.replace("\\", "/")
@@ -203,15 +292,35 @@ def lua_list(name, items):
     return "\n".join(lines)
 
 
-def write_content_manifest(man, sounds, models, particles):
+def write_content_manifest(man, sounds, models, materials, particles):
+    """Пишет content_manifest.json + lua-копию для сервера.
+
+    Пути в манифесте — как в garrysmod/ (models/..., materials/..., sound/...),
+    чтобы их можно было один-в-один положить в FastDL.
+    """
     out = {
         "_comment": [
-            "Список контента, который нужен оружию Remorseim и которого нет в обычном Z-City.",
-            "Его ищет батник tools/ИщиКонтент.bat (и Steam Workshop Downloader / FastDL).",
+            "Контент, который нужен НОВЫМ свep'ам Remorseim и которого нет в обычном Z-City.",
+            "models/ materials/ sound/ — пути внутри garrysmod/ и внутри аддона.",
+            "Ищет и раскладывает: tools/find_content.py content (батник ИщиКонтент.bat).",
+            "Файлы уже лежат в addon/remorseim_gunpack/{models,materials,sound}/ —",
+            "если они там есть, качать ничего не нужно.",
         ],
-        "particles": particles,
+        "howto": {
+            "автоматически": "tools\\ИщиКонтент.bat -> пункт 1",
+            "вручную": "найти по путям в своей папке garrysmod/workshop и скопировать",
+            "куда": "addon/remorseim_gunpack/models, /materials, /sound — структура сохраняется",
+        },
+        "counts": {
+            "models": len(models),
+            "materials": len(materials),
+            "sounds": len(sounds),
+            "particles": len(particles),
+        },
         "models": models,
-        "sounds": [normalize_sound_path(s) for s in sounds],
+        "materials": materials,
+        "sounds": sounds,
+        "particles": particles,
     }
     path = os.path.join(ROOT, "content_manifest.json")
     with open(path, "w", encoding="utf-8") as f:
@@ -221,29 +330,25 @@ def write_content_manifest(man, sounds, models, particles):
     srv_dir = os.path.join(ADDON, "lua", "autorun", "server")
     os.makedirs(srv_dir, exist_ok=True)
     lua_path = os.path.join(srv_dir, "sv_gunpack_content.lua")
-    body = []
-    body.append("-- АВТОГЕНЕРАЦИЯ: build/build_addon.py — не редактировать руками.")
-    body.append("-- Список контента, которого нет в обычном Z-City.")
-    body.append("REMORSEIM_GUNPACK = REMORSEIM_GUNPACK or {}")
-    body.append("REMORSEIM_GUNPACK.Content = {")
-    body.append("\tsounds = {")
-    for s in out["sounds"]:
-        body.append('\t\t%r,' % s)
-    body.append("\t},")
-    body.append("\tmodels = {")
-    for m in out["models"]:
-        body.append('\t\t%r,' % m)
-    body.append("\t},")
-    body.append("\tparticles = {")
-    for p in out["particles"]:
-        body.append('\t\t%r,' % p)
-    body.append("\t},")
+
+    body = [
+        "-- АВТОГЕНЕРАЦИЯ: build/build_addon.py — не редактировать руками.",
+        "-- Контент, которого нет в обычном Z-City, только для НОВЫХ свep'ов Remorseim.",
+        "-- Физические файлы лежат в addon/remorseim_gunpack/{models,materials,sound}/",
+        "REMORSEIM_GUNPACK = REMORSEIM_GUNPACK or {}",
+        "REMORSEIM_GUNPACK.Content = {",
+    ]
+    for key in ("models", "materials", "sounds", "particles"):
+        body.append("\t%s = {" % key)
+        for item in out[key]:
+            body.append("\t\t%r," % item)
+        body.append("\t},")
     body.append("}")
     with open(lua_path, "w", encoding="utf-8") as f:
         f.write("\n".join(body) + "\n")
 
-    log("content manifest: %d sounds, %d models, %d particles"
-        % (len(out["sounds"]), len(out["models"]), len(out["particles"])))
+    log("содержимое: %d моделей, %d материалов, %d звуков, %d частиц"
+        % (len(models), len(materials), len(sounds), len(particles)))
     return path
 
 
@@ -268,8 +373,9 @@ def main():
     if gen_melee.main() != 0:
         log("ВНИМАНИЕ: не удалось сгенерировать ближний бой")
 
-    sounds, models, particles = collect_content(man)
-    write_content_manifest(man, sounds, models, particles)
+    sounds, models, materials, particles = collect_content(man)
+    write_content_manifest(man, sounds, models, materials, particles)
+    write_placeholder_dirs(sounds, models, materials)
 
     log("готово: addon/remorseim_gunpack")
     return 0

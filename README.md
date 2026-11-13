@@ -31,8 +31,11 @@ addon/remorseim_gunpack/          ← готовый аддон (кидать в
     │       ├── sv_gunpack_boot.lua       список оружия + хелперы
     │       └── sv_gunpack_content.lua    ← генерируется автоматически
     ├── weapons/                          47 огнестрела + 33 melee (weapon_rem_melee_*)
-    └── entities/                         rem_bomb_*, ent_enhanced_hook,
-                                          zbox_lootbox, граната с зажигательным
+    ├── entities/                         rem_bomb_*, ent_enhanced_hook,
+    │                                     zbox_lootbox, граната с зажигательным
+    ├── models/        ← сюда батник кладёт модели (.mdl/.vvd/.vtx/.phy)
+    ├── materials/     ← сюда батник кладёт материалы (.vmt/.vtf/.png)
+    └── sound/         ← сюда батник кладёт звуки (.wav/.ogg)
 
 tools/
 ├── ИщиКонтент.bat                        ← БАТНИК: сборка + поиск контента
@@ -318,6 +321,57 @@ remorseim_gunpack_verbose 1
 
 ---
 
+## Контент: три папки и батник
+
+Контент ищется **только для новых свep'ов** Remorseim — старое оружие Z-City
+не трогается, его модели и звуки уже стоят вместе с геймодом.
+
+Внутри аддона три папки, структура повторяет `garrysmod/`:
+
+```
+addon/remorseim_gunpack/
+├── models/       models/weapons/hammer/w.mdl  (и .vvd/.vtx/.phy)
+├── materials/    materials/vgui/ak47.png      (и .vmt/.vtf)
+└── sound/        sound/axe/AxeBigBite-01.wav
+```
+
+Что нужно — считается автоматически из lua новых оружий:
+
+| папка | что внутри | сколько |
+|---|---|---|
+| `models/` | `.mdl` + `.vvd/.vtx/.phy` | 397 файлов |
+| `materials/` | `.vmt/.vtf` и иконки в `vgui/` | 83 файла |
+| `sound/` | `.wav/.ogg` | 167 файлов |
+
+### Батник
+
+`tools\ИщиКонтент.bat` — меню:
+
+```
+1 - Все три папки: models + materials + sound
+2 - Только models
+3 - Только materials
+4 - Только sound
+5 - Пересобрать аддон (структура папок + content_manifest.json)
+6 - Проверить, чего не хватает
+7 - Воркшоп-аддоны с контентом
+```
+
+Он спрашивает путь к `garrysmod`, обходит её и папки воркшопа
+(`addons/`, `workshop/content/4000/`), находит файлы по путям из
+`content_manifest.json` и копирует их в нужную папку аддона, сохраняя
+структуру. Уже скопированное второй раз не перезаписывается.
+
+Если файла нет ни в garrysmod, ни в воркшопе — он попадает в список
+«не найдено», а если имя неоднозначное (в воркшопе десятки `w.mdl`) —
+в список «проверьте глазами».
+
+Руками: просто скопируйте файлы по путям из `content_manifest.json` в
+соответствующие папки аддона. Сервер сам раздаст их клиентам
+(`resource.AddSingleFile`), отдельный FastDL не обязателен.
+
+---
+
 ## Сборка с нуля
 
 ```bat
@@ -329,6 +383,7 @@ tools\ИщиКонтент.bat
 ```bat
 python tools\find_content.py prepare
 python tools\find_content.py build
+python tools\find_content.py content
 ```
 
 `build_addon.py` читает `build/manifest.json` (огнестрел и снаряжение) и

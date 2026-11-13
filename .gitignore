@@ -5,6 +5,18 @@
 *.gma
 build_output/
 
+# Контент, который батник находит на диске (модели/материалы/звуки).
+# В репозиторий он не попадает: весит много, качается из воркшопа.
+addon/remorseim_gunpack/models/*
+addon/remorseim_gunpack/materials/*
+addon/remorseim_gunpack/sound/*
+!addon/remorseim_gunpack/models/README.txt
+!addon/remorseim_gunpack/materials/README.txt
+!addon/remorseim_gunpack/sound/README.txt
+
+# готовый архив для скачивания — обновляется при релизе
+!build_output/remorseim_gunpack.zip
+
 # Мусор ОС/редакторов
 Thumbs.db
 desktop.ini

@@ -130,7 +130,7 @@ GP.MeleeWeapons = {
 -- Если контента нет на сервере — регистрация просто ничего не сделает,
 -- аддон продолжит работать (модели/звуки подтянутся из воркшопа).
 if GP.Content then
-	local n_snd, n_mdl, n_pcf = 0, 0, 0
+	local n_snd, n_mdl, n_mat, n_pcf = 0, 0, 0, 0
 
 	for _, snd in ipairs(GP.Content.sounds or {}) do
 		resource.AddSingleFile(snd)
@@ -142,12 +142,18 @@ if GP.Content then
 		n_mdl = n_mdl + 1
 	end
 
+	for _, mat in ipairs(GP.Content.materials or {}) do
+		resource.AddSingleFile(mat)
+		n_mat = n_mat + 1
+	end
+
 	for _, pcf in ipairs(GP.Content.particles or {}) do
 		resource.AddSingleFile(pcf)
 		n_pcf = n_pcf + 1
 	end
 
-	GP.Log(string.format("content: %d sounds, %d models, %d particles", n_snd, n_mdl, n_pcf))
+	GP.Log(string.format("content: %d sounds, %d models, %d materials, %d particles",
+		n_snd, n_mdl, n_mat, n_pcf))
 end
 
 ----------------------------------------------------------------

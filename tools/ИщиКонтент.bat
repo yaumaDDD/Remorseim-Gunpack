@@ -6,15 +6,17 @@ title Remorseim Gunpack - поиск контента
 cd /d "%~dp0.."
 
 echo ==================================================================
-echo   Remorseim Gunpack :: поиск контента для оружия
+echo   Remorseim Gunpack :: поиск контента для НОВЫХ свепов
 echo ==================================================================
 echo.
-echo   Этот батник собирает аддон и проверяет, каких моделей и звуков
-echo   не хватает для оружия Remorseim.
+echo   Контент ищется ТОЛЬКО для новых оружий и ближнего боя Remorseim
+echo   и раскладывается в три папки аддона:
 echo.
-echo   ВАЖНО: сам контент (модели/звуки) в GitHub не кладётся - он
-echo   весит слишком много. Аддон содержит только lua-скрипты, а
-echo   контент подтягивается из воркшоп-аддонов.
+echo       addon\remorseim_gunpack\models\      модели .mdl/.vvd/.vtx/.phy
+echo       addon\remorseim_gunpack\materials\   материалы .vmt/.vtf + иконки
+echo       addon\remorseim_gunpack\sound\       звуки .wav/.ogg
+echo.
+echo   Старое оружие Z-City не трогается - его контент уже на месте.
 echo.
 echo ==================================================================
 echo.
@@ -31,40 +33,125 @@ if "%PY%"=="" (
     exit /b 2
 )
 
-echo [1/4] Python: 
+echo Python:
 %PY% --version
 echo.
 
-echo [2/4] Распаковка zip-архивов и сборка аддона...
+rem --- путь к Garry's Mod ------------------------------------------
+set GMPATH=
+if not "%GMOD_PATH%"=="" set GMPATH=%GMOD_PATH%
+if "%GMPATH%"=="" (
+    set /p GMPATH="Путь к папке garrysmod (Enter - найти автоматически): "
+)
+if not "%GMPATH%"=="" set GMOD_PATH=%GMPATH%
+echo.
+
+:menu
+echo ------------------------------------------------------------------
+echo   Что делаем?
+echo ------------------------------------------------------------------
+echo   1 - Все три папки: models + materials + sound
+echo   2 - Только models
+echo   3 - Только materials
+echo   4 - Только sound
+echo   5 - Пересобрать аддон (структура папок + content_manifest.json)
+echo   6 - Проверить, чего не хватает
+echo   7 - Воркшоп-аддоны с контентом
+echo   0 - Выход
+echo ------------------------------------------------------------------
+set CHOICE=
+set /p CHOICE="Выбор [1]: "
+if "%CHOICE%"=="" set CHOICE=1
+
+if "%CHOICE%"=="0" exit /b 0
+if "%CHOICE%"=="1" goto all_content
+if "%CHOICE%"=="2" goto only_models
+if "%CHOICE%"=="3" goto only_materials
+if "%CHOICE%"=="4" goto only_sound
+if "%CHOICE%"=="5" goto rebuild
+if "%CHOICE%"=="6" goto check
+if "%CHOICE%"=="7" goto workshop
+echo Не понял выбор "%CHOICE%".
+echo.
+goto menu
+
+:all_content
+echo.
+echo [1/2] Подготовка: сборка аддона и списка контента...
 %PY% tools\find_content.py build
 if errorlevel 1 goto fail
 echo.
+echo [2/2] Поиск и раскладка: models + materials + sound...
+%PY% tools\find_content.py content
+set RESULT=%errorlevel%
+goto done
 
-echo [3/4] Проверка контента в Garry's Mod...
-set /p GMPATH="Путь к папке garrysmod (Enter - найти автоматически): "
-if not "%GMPATH%"=="" set GMOD_PATH=%GMPATH%
+:only_models
+echo.
+echo [1/2] Подготовка: сборка аддона и списка контента...
+%PY% tools\find_content.py build
+if errorlevel 1 goto fail
+echo.
+echo [2/2] Поиск и раскладка: только models...
+%PY% tools\find_content.py content --only models
+set RESULT=%errorlevel%
+goto done
+
+:only_materials
+echo.
+echo [1/2] Подготовка: сборка аддона и списка контента...
+%PY% tools\find_content.py build
+if errorlevel 1 goto fail
+echo.
+echo [2/2] Поиск и раскладка: только materials...
+%PY% tools\find_content.py content --only materials
+set RESULT=%errorlevel%
+goto done
+
+:only_sound
+echo.
+echo [1/2] Подготовка: сборка аддона и списка контента...
+%PY% tools\find_content.py build
+if errorlevel 1 goto fail
+echo.
+echo [2/2] Поиск и раскладка: только sound...
+%PY% tools\find_content.py content --only sounds
+set RESULT=%errorlevel%
+goto done
+
+:rebuild
+echo.
+%PY% tools\find_content.py build
+set RESULT=%errorlevel%
+goto done
+
+:check
+echo.
 %PY% tools\find_content.py scan
-set SCAN_RESULT=%errorlevel%
-echo.
+set RESULT=%errorlevel%
+goto done
 
-echo [4/4] Воркшоп-аддоны с контентом
+:workshop
+echo.
 %PY% tools\find_content.py workshop
-echo.
+set RESULT=0
+goto done
 
-if "%SCAN_RESULT%"=="0" (
+:done
+echo.
+if "%RESULT%"=="0" (
     echo ==================================================================
-    echo   ГОТОВО: весь контент на месте.
+    echo   ГОТОВО: всё, что нужно, найдено и разложено по папкам.
     echo ==================================================================
 ) else (
     echo ==================================================================
-    echo   ГОТОВО, но части контента нет.
-    echo   Подпишитесь на воркшоп-аддоны выше - этого достаточно.
+    echo   ГОТОВО, но части контента нет на диске.
+    echo   Список выше; ещё раз можно подписаться на воркшоп-аддоны (пункт 7).
     echo ==================================================================
 )
-
 echo.
-echo Аддон лежит в: addon\remorseim_gunpack
-echo Список нужных файлов: content_manifest.json
+echo Аддон:  addon\remorseim_gunpack
+echo Список: content_manifest.json
 echo.
 pause
 exit /b 0
